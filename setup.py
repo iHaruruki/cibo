@@ -26,6 +26,7 @@ setup(
             'body_face_node = cibo.body_face:main',
             'hand_node = cibo.hand:main',
             'camera_calibration_node = cibo.camera_calibration:main',
+            'body_face_hand_node = cibo.body_face_hand:main',
         ],
     },
 )
