@@ -20,8 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'body_face_node = cibio.body_face:main',
-            'hand_node = cibio.hand:main',
+            'body_face_node = cibo.body_face:main',
+            'hand_node = cibo.hand:main',
         ],
     },
 )
