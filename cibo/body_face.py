@@ -24,26 +24,27 @@ class MPProcessorNode(Node):
         self.use_compressed = self.get_parameter('use_compressed').get_parameter_value().bool_value
         self.publish_annotated = self.get_parameter('publish_annotated_image').get_parameter_value().bool_value
 
-        qos = QoSProfile(
-            reliability=ReliabilityPolicy.BEST_EFFORT,
-            history=HistoryPolicy.KEEP_LAST,
-            depth=5
-        )
+        # QoS: landmarks は best_effort でも良いが、annotated image を購読する多くのノードは RELIABLE を期待する場合がある。
+        qos_best_effort = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=5)
+        # annotated image 用に RELIABLE を用意（互換性が必要ならこちらを使う）
+        qos_reliable = QoSProfile(reliability=ReliabilityPolicy.RELIABLE, history=HistoryPolicy.KEEP_LAST, depth=5)
 
-        # Publishers: ランドマークと（任意）アノテーション画像
+        # Publishers
         self.pub_landmarks_cam1 = self.create_publisher(Int32MultiArray, 'mp/camera_01/landmarks', 10)
         self.pub_landmarks_cam2 = self.create_publisher(Int32MultiArray, 'mp/camera_02/landmarks', 10)
         if self.publish_annotated:
-            self.pub_annot_cam1 = self.create_publisher(Image, 'mp/camera_01/annotated_image', qos)
-            self.pub_annot_cam2 = self.create_publisher(Image, 'mp/camera_02/annotated_image', qos)
+            # ここで RELIABLE を使うことで、RELIABLE サブスクライバとも互換になります
+            self.pub_annot_cam1 = self.create_publisher(Image, 'mp/camera_01/annotated_image', qos_reliable)
+            self.pub_annot_cam2 = self.create_publisher(Image, 'mp/camera_02/annotated_image', qos_reliable)
 
         # Subscribers
+        # Subscribers は既存コードのまま
         if self.use_compressed:
-            self.sub_cam1 = self.create_subscription(CompressedImage, cam1_topic + '/compressed' if not cam1_topic.endswith('/compressed') else cam1_topic, lambda msg: self._image_callback(msg, 'camera_01'), qos)
-            self.sub_cam2 = self.create_subscription(CompressedImage, cam2_topic + '/compressed' if not cam2_topic.endswith('/compressed') else cam2_topic, lambda msg: self._image_callback(msg, 'camera_02'), qos)
+            self.sub_cam1 = self.create_subscription(CompressedImage, cam1_topic + '/compressed' if not cam1_topic.endswith('/compressed') else cam1_topic, lambda msg: self._image_callback(msg, 'camera_01'), qos_best_effort)
+            self.sub_cam2 = self.create_subscription(CompressedImage, cam2_topic + '/compressed' if not cam2_topic.endswith('/compressed') else cam2_topic, lambda msg: self._image_callback(msg, 'camera_02'), qos_best_effort)
         else:
-            self.sub_cam1 = self.create_subscription(Image, cam1_topic, lambda msg: self._image_callback(msg, 'camera_01'), qos)
-            self.sub_cam2 = self.create_subscription(Image, cam2_topic, lambda msg: self._image_callback(msg, 'camera_02'), qos)
+            self.sub_cam1 = self.create_subscription(Image, cam1_topic, lambda msg: self._image_callback(msg, 'camera_01'), qos_best_effort)
+            self.sub_cam2 = self.create_subscription(Image, cam2_topic, lambda msg: self._image_callback(msg, 'camera_02'), qos_best_effort)
 
         self.bridge = CvBridge()
 
