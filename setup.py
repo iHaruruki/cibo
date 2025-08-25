@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'cibio'
+package_name = 'cibo'
 
 setup(
     name=package_name,
@@ -13,13 +13,15 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='robot',
-    maintainer_email='ryo.saegusa@syblab.org',
+    maintainer='HarukiIsono',
+    maintainer_email='haruki.isono861@gmail.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'hand_node = cibio.hand:main',
+            'face_node = cibio.face:main',
         ],
     },
 )
