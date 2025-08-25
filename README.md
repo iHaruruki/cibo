@@ -7,6 +7,7 @@ ros2 launch orbbec_camera multi_camera.launch.py
 ```shell
 hand.py
 ```
+-Run body_face_hand
 ```shell
-face.py
+ros2 cibo run body_face_hand_node
 ```
