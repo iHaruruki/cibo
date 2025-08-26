@@ -37,34 +37,29 @@ class CameraCalibrationROS2(Node):
             'hh': 240  # 高さの半分
         }
         
-        # クリック位置保存用
-        self.clicked_points_cam1_2d = []
-        self.clicked_points_cam1_3d = []
-        self.clicked_points_cam2_2d = []
-        self.clicked_points_cam2_3d = []
+        # チェスボードパラメータ
+        self.chessboard_size = (8, 6)  # 内部コーナー数 (横, 縦)
+        self.square_size = 25.0  # チェスボードの1マスのサイズ (mm)
         
-        # マーカー座標（実世界座標系、mm単位）
-        self.marker_positions_front = [
-            np.array([30, 180, 0]),
-            np.array([180, 180, 0]),
-            np.array([30, 30, 0]),
-            np.array([180, 30, 0]),
-            np.array([90, 120, 0]),
-            np.array([120, 90, 0]),
-            np.array([120, 120, 0]),
-            np.array([90, 90, 0])
-        ]
+        # チェスボード検出用パラメータ
+        self.criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
         
-        self.marker_positions_top = [
-            np.array([30, 0, 30]),
-            np.array([180, 0, 30]),
-            np.array([30, 0, 180]),
-            np.array([180, 0, 180]),
-            np.array([90, 0, 90]),
-            np.array([120, 0, 120]),
-            np.array([120, 0, 90]),
-            np.array([90, 0, 120])
-        ]
+        # 3D座標生成（チェスボードパターン）
+        self.objp = np.zeros((self.chessboard_size[0] * self.chessboard_size[1], 3), np.float32)
+        self.objp[:, :2] = np.mgrid[0:self.chessboard_size[0], 0:self.chessboard_size[1]].T.reshape(-1, 2)
+        self.objp *= self.square_size
+        
+        # 検出された点を保存
+        self.camera1_object_points = []  # 3D点
+        self.camera1_image_points = []   # 2D点
+        self.camera2_object_points = []  # 3D点
+        self.camera2_image_points = []   # 2D点
+        
+        # 現在の検出状態
+        self.current_corners_cam1 = None
+        self.current_corners_cam2 = None
+        self.corners_detected_cam1 = False
+        self.corners_detected_cam2 = False
         
         # 個別サブスクライバー（メッセージフィルターを使わない）
         self.camera1_rgb_sub = self.create_subscription(
@@ -93,6 +88,16 @@ class CameraCalibrationROS2(Node):
         
         # キャリブレーション結果
         self.transformation_matrix = None
+        self.camera_matrix1 = None
+        self.camera_matrix2 = None
+        self.dist_coeffs1 = None
+        self.dist_coeffs2 = None
+        self.rotation_matrix = None
+        self.translation_vector = None
+        self.calibration_completed = False
+        
+        # カメラ間距離
+        self.camera_distance = 0.0
         
         # OpenCVウィンドウの初期化
         self.setup_opencv_windows()
@@ -103,12 +108,23 @@ class CameraCalibrationROS2(Node):
         # キー入力処理用タイマー（60Hz）
         self.key_timer = self.create_timer(1.0/60.0, self.process_key_input)
         
-        self.get_logger().info('カメラキャリブレーションノードが初期化されました')
+        # チェスボード検出タイマー（10Hz）
+        self.detection_timer = self.create_timer(1.0/10.0, self.detect_chessboard)
+        
+        # TF配信タイマー（10Hz）- キャリブレーション完了後に開始
+        self.tf_timer = None
+        
+        # 起動時に保存されたキャリブレーション結果を読み込み
+        self.load_calibration()
+        
+        self.get_logger().info('チェスボードキャリブレーションノードが初期化されました')
         self.get_logger().info('使用方法：')
-        self.get_logger().info('- 画像ウィンドウでマーカーをクリック')
+        self.get_logger().info(f'- チェスボード({self.chessboard_size[0]}x{self.chessboard_size[1]})を両カメラに表示')
+        self.get_logger().info('- スペースキー：現在の検出結果を保存')
         self.get_logger().info('- cキー：キャリブレーション実行')
         self.get_logger().info('- rキー：リセット')
         self.get_logger().info('- sキー：結果保存')
+        self.get_logger().info('- lキー：保存済み結果読み込み')
         self.get_logger().info('- qキー：終了')
 
     def setup_opencv_windows(self):
@@ -131,10 +147,6 @@ class CameraCalibrationROS2(Node):
         cv2.moveWindow('Camera2_RGB', 0, 520)
         cv2.moveWindow('Camera2_Depth', 650, 520)
         
-        # マウスコールバック設定
-        cv2.setMouseCallback('Camera1_RGB', self.mouse_callback, 'Camera1_RGB')
-        cv2.setMouseCallback('Camera2_RGB', self.mouse_callback, 'Camera2_RGB')
-        
         # 初期画像表示
         self.show_waiting_message()
 
@@ -148,16 +160,23 @@ class CameraCalibrationROS2(Node):
             f"Camera2 RGB: {'OK' if self.rgb2_received else 'Waiting'}",
             f"Camera2 Depth: {'OK' if self.depth2_received else 'Waiting'}",
             "",
-            "Controls:",
-            "C = Calibrate, R = Reset, S = Save, Q = Quit",
+            f"Chessboard: {self.chessboard_size[0]}x{self.chessboard_size[1]} corners",
+            f"Square size: {self.square_size}mm",
             "",
-            f"Points: Cam1={len(self.clicked_points_cam1_2d)}, Cam2={len(self.clicked_points_cam2_2d)}"
+            "Controls:",
+            "SPACE = Capture, C = Calibrate, R = Reset, S = Save, Q = Quit",
+            "",
+            f"Captured pairs: {len(self.camera1_image_points)}",
+            f"Cam1 detected: {'YES' if self.corners_detected_cam1 else 'NO'}",
+            f"Cam2 detected: {'YES' if self.corners_detected_cam2 else 'NO'}",
+            f"Calibrated: {'YES' if self.calibration_completed else 'NO'}",
+            f"Camera distance: {self.camera_distance:.1f}mm" if self.calibration_completed else ""
         ]
         
         for i, text in enumerate(texts):
             if text:
-                cv2.putText(black_image, text, (10, 50 + i * 30), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
+                cv2.putText(black_image, text, (10, 30 + i * 25), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         
         cv2.imshow('Camera1_RGB', black_image.copy())
         cv2.imshow('Camera2_RGB', black_image.copy())
@@ -205,15 +224,21 @@ class CameraCalibrationROS2(Node):
         try:
             key = cv2.waitKey(1) & 0xFF
             
-            if key == ord('c'):
+            if key == ord(' '):  # スペースキー
+                self.get_logger().info('スペースキー: チェスボード検出結果を保存')
+                self.capture_chessboard()
+            elif key == ord('c'):
                 self.get_logger().info('Cキー: キャリブレーション開始')
                 self.calibrate_cameras()
             elif key == ord('r'):
                 self.get_logger().info('Rキー: リセット')
-                self.reset_points()
+                self.reset_calibration()
             elif key == ord('s'):
                 self.get_logger().info('Sキー: 保存')
                 self.save_calibration()
+            elif key == ord('l'):
+                self.get_logger().info('Lキー: 保存済み結果読み込み')
+                self.load_calibration()
             elif key == ord('q'):
                 self.get_logger().info('Qキー: 終了')
                 rclpy.shutdown()
@@ -246,9 +271,9 @@ class CameraCalibrationROS2(Node):
             rgb1_display = self.current_rgb1.copy()
             rgb2_display = self.current_rgb2.copy()
             
-            # クリック点を描画
-            self.draw_clicked_points(rgb1_display, self.clicked_points_cam1_2d, self.clicked_points_cam1_3d)
-            self.draw_clicked_points(rgb2_display, self.clicked_points_cam2_2d, self.clicked_points_cam2_3d)
+            # チェスボードコーナーを描画
+            self.draw_chessboard_corners(rgb1_display, self.current_corners_cam1, self.corners_detected_cam1)
+            self.draw_chessboard_corners(rgb2_display, self.current_corners_cam2, self.corners_detected_cam2)
             
             # ステータス情報をオーバーレイ
             self.draw_status_overlay(rgb1_display, "Camera 1")
@@ -263,86 +288,172 @@ class CameraCalibrationROS2(Node):
         except Exception as e:
             self.get_logger().error(f'表示更新エラー: {str(e)}')
 
-    def draw_clicked_points(self, image, points_2d, points_3d):
-        """クリック点を描画"""
-        for i, (point_2d, point_3d) in enumerate(zip(points_2d, points_3d)):
-            if point_3d[2] == 0:
-                cv2.circle(image, point_2d, 8, (255, 0, 0), -1)  # 青（3Dデータなし）
-            else:
-                cv2.circle(image, point_2d, 6, (255, 0, 255), 2)  # 紫（3Dデータあり）
+    def draw_chessboard_corners(self, image, corners, detected):
+        """チェスボードコーナーを描画"""
+        if detected and corners is not None:
+            # コーナーを描画
+            cv2.drawChessboardCorners(image, self.chessboard_size, corners, detected)
             
-            # 番号を表示
-            cv2.putText(image, str(i), (point_2d[0]+10, point_2d[1]-10), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            # 検出成功を示す枠を描画
+            cv2.rectangle(image, (5, 5), (image.shape[1]-5, image.shape[0]-5), (0, 255, 0), 3)
+        else:
+            # 検出失敗を示す枠を描画
+            cv2.rectangle(image, (5, 5), (image.shape[1]-5, image.shape[0]-5), (0, 0, 255), 3)
 
     def draw_status_overlay(self, image, camera_name):
         """ステータス情報をオーバーレイ"""
+        captured_count = len(self.camera1_image_points)
+        
         if camera_name == "Camera 1":
-            points_count = len(self.clicked_points_cam1_2d)
+            detected = self.corners_detected_cam1
         else:
-            points_count = len(self.clicked_points_cam2_2d)
+            detected = self.corners_detected_cam2
         
         status_texts = [
-            f"{camera_name}: {points_count}/8 points",
-            "C=Calibrate R=Reset S=Save Q=Quit"
+            f"{camera_name}: {'DETECTED' if detected else 'NO PATTERN'}",
+            f"Captured: {captured_count}/10+ pairs",
+            f"Calibrated: {'YES' if self.calibration_completed else 'NO'}",
+            f"Distance: {self.camera_distance:.1f}mm" if self.calibration_completed else "",
+            "SPACE=Capture C=Calibrate R=Reset S=Save L=Load Q=Quit"
         ]
         
         # 背景を描画
         overlay = image.copy()
-        cv2.rectangle(overlay, (5, 5), (400, 60), (0, 0, 0), -1)
+        cv2.rectangle(overlay, (5, 5), (500, 80), (0, 0, 0), -1)
         cv2.addWeighted(overlay, 0.7, image, 0.3, 0, image)
         
         # テキストを描画
         for i, text in enumerate(status_texts):
+            color = (0, 255, 0) if detected and i == 0 else (255, 255, 255)
             cv2.putText(image, text, (10, 25 + i * 20), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
 
-    def conv3d(self, depth_image, x, y):
-        """2D座標を3D座標に変換"""
-        if y >= depth_image.shape[0] or x >= depth_image.shape[1]:
-            return np.array([0, 0, 0])
-        
-        # 深度値を取得（mm単位）
-        depth_mm = depth_image[y, x]
-        if depth_mm == 0:
-            return np.array([0, 0, 0])
-        
-        # 画像中心からの相対座標
-        xc = x - 320  # 画像幅の半分
-        yc = y - self.camera_params['hh']  # 画像高さの半分
-        
-        # 角度計算
-        thh = self.camera_params['thh']
-        tvh = self.camera_params['tvh']
-        tdh = self.camera_params['tdh']
-        
-        thx = np.tan(thh) * xc / 320
-        thy = np.tan(tvh) * yc / self.camera_params['hh']
-        thz = np.tan(tdh) * np.sqrt(xc**2 + yc**2) / np.sqrt(320**2 + self.camera_params['hh']**2)
-        
-        # 3D座標計算
-        X = -depth_mm * thx / np.sqrt(1 + thx**2)
-        Y = -depth_mm * thy / np.sqrt(1 + thy**2)
-        Z = depth_mm / np.sqrt(1 + thz**2)
-        
-        return np.array([X, Y, Z])
-
-    def mouse_callback(self, event, x, y, flags, param):
-        """マウスクリックイベント処理"""
-        if event == cv2.EVENT_LBUTTONDOWN:
-            window_name = param
+    def detect_chessboard(self):
+        """チェスボード検出"""
+        try:
+            # 両方のRGB画像が利用可能かチェック
+            if self.current_rgb1 is None or self.current_rgb2 is None:
+                return
             
-            if window_name == 'Camera1_RGB' and self.current_depth1 is not None:
-                xyz = self.conv3d(self.current_depth1, x, y)
-                self.clicked_points_cam1_2d.append((x, y))
-                self.clicked_points_cam1_3d.append(xyz)
-                self.get_logger().info(f'Camera1 点{len(self.clicked_points_cam1_2d)}: 2D({x}, {y}) -> 3D({xyz[0]:.1f}, {xyz[1]:.1f}, {xyz[2]:.1f})')
+            # Camera1でチェスボード検出
+            gray1 = cv2.cvtColor(self.current_rgb1, cv2.COLOR_BGR2GRAY)
+            ret1, corners1 = cv2.findChessboardCorners(gray1, self.chessboard_size, None)
+            
+            if ret1:
+                # サブピクセル精度でコーナーを改良
+                corners1 = cv2.cornerSubPix(gray1, corners1, (11, 11), (-1, -1), self.criteria)
+                self.current_corners_cam1 = corners1
+                self.corners_detected_cam1 = True
+            else:
+                self.current_corners_cam1 = None
+                self.corners_detected_cam1 = False
+            
+            # Camera2でチェスボード検出
+            gray2 = cv2.cvtColor(self.current_rgb2, cv2.COLOR_BGR2GRAY)
+            ret2, corners2 = cv2.findChessboardCorners(gray2, self.chessboard_size, None)
+            
+            if ret2:
+                # サブピクセル精度でコーナーを改良
+                corners2 = cv2.cornerSubPix(gray2, corners2, (11, 11), (-1, -1), self.criteria)
+                self.current_corners_cam2 = corners2
+                self.corners_detected_cam2 = True
+            else:
+                self.current_corners_cam2 = None
+                self.corners_detected_cam2 = False
                 
-            elif window_name == 'Camera2_RGB' and self.current_depth2 is not None:
-                xyz = self.conv3d(self.current_depth2, x, y)
-                self.clicked_points_cam2_2d.append((x, y))
-                self.clicked_points_cam2_3d.append(xyz)
-                self.get_logger().info(f'Camera2 点{len(self.clicked_points_cam2_2d)}: 2D({x}, {y}) -> 3D({xyz[0]:.1f}, {xyz[1]:.1f}, {xyz[2]:.1f})')
+        except Exception as e:
+            self.get_logger().error(f'チェスボード検出エラー: {str(e)}')
+
+    def capture_chessboard(self):
+        """現在のチェスボード検出結果を保存"""
+        if not self.corners_detected_cam1 or not self.corners_detected_cam2:
+            self.get_logger().warn('両方のカメラでチェスボードが検出されていません')
+            return
+        
+        # 3D点を追加
+        self.camera1_object_points.append(self.objp)
+        self.camera2_object_points.append(self.objp)
+        
+        # 2D点を追加
+        self.camera1_image_points.append(self.current_corners_cam1)
+        self.camera2_image_points.append(self.current_corners_cam2)
+        
+        self.get_logger().info(f'チェスボードペア {len(self.camera1_image_points)} を保存しました')
+
+    def calibrate_cameras(self):
+        """キャリブレーション実行"""
+        if len(self.camera1_image_points) < 5:
+            self.get_logger().warn('キャリブレーションには最低5つのチェスボードペアが必要です')
+            return
+        
+        try:
+            # カメラ内部パラメータの初期推定
+            image_size = (640, 480)
+            
+            self.get_logger().info('キャリブレーション開始...')
+            
+            # Camera1のキャリブレーション
+            ret1, mtx1, dist1, rvecs1, tvecs1 = cv2.calibrateCamera(
+                self.camera1_object_points, self.camera1_image_points, 
+                image_size, None, None,
+                flags=cv2.CALIB_RATIONAL_MODEL)
+            
+            # Camera2のキャリブレーション
+            ret2, mtx2, dist2, rvecs2, tvecs2 = cv2.calibrateCamera(
+                self.camera2_object_points, self.camera2_image_points, 
+                image_size, None, None,
+                flags=cv2.CALIB_RATIONAL_MODEL)
+            
+            self.get_logger().info(f'Camera1 キャリブレーション誤差: {ret1:.4f}')
+            self.get_logger().info(f'Camera2 キャリブレーション誤差: {ret2:.4f}')
+            
+            # ステレオキャリブレーション（より高精度なフラグを使用）
+            ret_stereo, mtx1, dist1, mtx2, dist2, R, T, E, F = cv2.stereoCalibrate(
+                self.camera1_object_points, self.camera1_image_points, self.camera2_image_points,
+                mtx1, dist1, mtx2, dist2, image_size, 
+                criteria=self.criteria, 
+                flags=cv2.CALIB_FIX_INTRINSIC + cv2.CALIB_RATIONAL_MODEL)
+            
+            self.get_logger().info(f'ステレオキャリブレーション誤差: {ret_stereo:.4f}')
+            
+            # 結果を保存
+            self.camera_matrix1 = mtx1
+            self.camera_matrix2 = mtx2
+            self.dist_coeffs1 = dist1
+            self.dist_coeffs2 = dist2
+            self.rotation_matrix = R
+            self.translation_vector = T
+            
+            # 変換行列を作成（4x4）
+            self.transformation_matrix = np.eye(4)
+            self.transformation_matrix[:3, :3] = R
+            self.transformation_matrix[:3, 3] = T.flatten()
+            
+            # カメラ間距離を計算（ミリメートル単位）
+            self.camera_distance = np.linalg.norm(T) * 1000  # mからmmに変換
+            
+            # キャリブレーション完了フラグ
+            self.calibration_completed = True
+            
+            self.get_logger().info('キャリブレーション完了！')
+            self.get_logger().info(f'回転行列 R:\n{R}')
+            self.get_logger().info(f'平行移動ベクトル T: {T.flatten()}')
+            self.get_logger().info(f'カメラ間距離: {self.camera_distance:.1f}mm')
+            
+            # 継続的なTF配信を開始
+            if self.tf_timer is None:
+                self.tf_timer = self.create_timer(1.0/10.0, self.publish_transform_continuous)
+            
+            # 初回TF配信
+            self.publish_transform()
+            
+            # ステータス配信
+            status_msg = Bool()
+            status_msg.data = True
+            self.calibration_status_pub.publish(status_msg)
+            
+        except Exception as e:
+            self.get_logger().error(f'キャリブレーションエラー: {str(e)}')
 
     def create_depth_visualization(self, depth_image):
         """深度画像の可視化"""
@@ -363,113 +474,47 @@ class CameraCalibrationROS2(Node):
         return depth_vis
 
     def compute_transformation_matrix(self, points_a, points_b):
-        """変換行列計算（SVDを使用）"""
-        points_a = np.array(points_a)
-        points_b = np.array(points_b)
-        
-        # 重心計算
-        centroid_a = np.mean(points_a, axis=0)
-        centroid_b = np.mean(points_b, axis=0)
-        
-        # 中心化
-        points_a_centered = points_a - centroid_a
-        points_b_centered = points_b - centroid_b
-        
-        # 共分散行列
-        H = points_a_centered.T @ points_b_centered
-        
-        # SVD
-        U, S, Vt = np.linalg.svd(H)
-        
-        # 回転行列
-        R = Vt.T @ U.T
-        
-        # 反射を修正
-        if np.linalg.det(R) < 0:
-            Vt[-1, :] *= -1
-            R = Vt.T @ U.T
-        
-        # 平行移動ベクトル
-        t = centroid_b - R @ centroid_a
-        
-        # 4x4変換行列
-        T = np.eye(4)
-        T[:3, :3] = R
-        T[:3, 3] = t
-        
-        return T
+        """変換行列計算（SVDを使用）- 削除予定"""
+        # この関数は現在使用されていません
+        pass
 
-    def calibrate_cameras(self):
-        """キャリブレーション実行"""
-        if len(self.clicked_points_cam1_3d) < 4 or len(self.clicked_points_cam2_3d) < 4:
-            self.get_logger().warn('キャリブレーションには各カメラで最低4点必要です')
-            return
+    def reset_calibration(self):
+        """キャリブレーションデータをリセット"""
+        self.camera1_object_points.clear()
+        self.camera1_image_points.clear()
+        self.camera2_object_points.clear()
+        self.camera2_image_points.clear()
         
-        if len(self.clicked_points_cam1_3d) != len(self.clicked_points_cam2_3d):
-            self.get_logger().warn('両カメラの点数が一致しません')
-            return
+        self.transformation_matrix = None
+        self.camera_matrix1 = None
+        self.camera_matrix2 = None
+        self.dist_coeffs1 = None
+        self.dist_coeffs2 = None
+        self.rotation_matrix = None
+        self.translation_vector = None
+        self.calibration_completed = False
+        self.camera_distance = 0.0
         
-        try:
-            # 各カメラからマーカー座標系への変換行列
-            T_cam1_to_marker = self.compute_transformation_matrix(
-                self.clicked_points_cam1_3d[:len(self.clicked_points_cam1_3d)], 
-                self.marker_positions_front[:len(self.clicked_points_cam1_3d)]
-            )
-            T_cam2_to_marker = self.compute_transformation_matrix(
-                self.clicked_points_cam2_3d[:len(self.clicked_points_cam2_3d)], 
-                self.marker_positions_top[:len(self.clicked_points_cam2_3d)]
-            )
-            
-            # Camera2からCamera1への変換行列
-            T_marker_to_cam1 = np.linalg.inv(T_cam1_to_marker)
-            self.transformation_matrix = T_marker_to_cam1 @ T_cam2_to_marker
-            
-            self.get_logger().info('キャリブレーション完了！')
-            self.get_logger().info(f'変換行列:\n{self.transformation_matrix}')
-            
-            # 変換精度確認
-            self.verify_calibration()
-            
-            # TFとして配信
-            self.publish_transform()
-            
-            # ステータス配信
-            status_msg = Bool()
-            status_msg.data = True
-            self.calibration_status_pub.publish(status_msg)
-            
-        except Exception as e:
-            self.get_logger().error(f'キャリブレーションエラー: {str(e)}')
+        self.current_corners_cam1 = None
+        self.current_corners_cam2 = None
+        self.corners_detected_cam1 = False
+        self.corners_detected_cam2 = False
+        
+        # TF配信を停止
+        if self.tf_timer is not None:
+            self.tf_timer.destroy()
+            self.tf_timer = None
+        
+        self.get_logger().info('キャリブレーションデータがリセットされました')
 
     def verify_calibration(self):
-        """キャリブレーション精度確認"""
-        if self.transformation_matrix is None:
-            return
-        
-        errors = []
-        for i, point_cam2 in enumerate(self.clicked_points_cam2_3d):
-            if point_cam2[2] == 0:  # 無効点をスキップ
-                continue
-                
-            # Camera2の点をCamera1座標系に変換
-            point_cam2_homogeneous = np.append(point_cam2, 1.0)
-            transformed_point = self.transformation_matrix @ point_cam2_homogeneous
-            transformed_point = transformed_point[:3]
-            
-            # 対応するCamera1の点との誤差計算
-            if i < len(self.clicked_points_cam1_3d):
-                error = np.linalg.norm(transformed_point - self.clicked_points_cam1_3d[i])
-                errors.append(error)
-                
-                self.get_logger().info(f'点{i}: Camera2({point_cam2}) -> Camera1推定({transformed_point}) 誤差: {error:.2f}mm')
-        
-        if errors:
-            mean_error = np.mean(errors)
-            self.get_logger().info(f'平均誤差: {mean_error:.2f}mm')
+        """キャリブレーション精度確認 - 削除予定"""
+        # この関数は現在使用されていません
+        pass
 
     def publish_transform(self):
         """TFとして変換を配信"""
-        if self.transformation_matrix is None:
+        if not self.calibration_completed or self.transformation_matrix is None:
             return
         
         # 回転行列から四元数に変換
@@ -486,49 +531,50 @@ class CameraCalibrationROS2(Node):
         transform.header.frame_id = 'camera_01_link'
         transform.child_frame_id = 'camera_02_link'
         
-        # mmをmに変換
-        transform.transform.translation.x = translation[0] / 1000.0
-        transform.transform.translation.y = translation[1] / 1000.0
-        transform.transform.translation.z = translation[2] / 1000.0
+        # mmをmに変換（チェスボードの場合は既にm単位）
+        transform.transform.translation.x = float(translation[0])
+        transform.transform.translation.y = float(translation[1])
+        transform.transform.translation.z = float(translation[2])
         
-        transform.transform.rotation.x = quaternion[0]
-        transform.transform.rotation.y = quaternion[1]
-        transform.transform.rotation.z = quaternion[2]
-        transform.transform.rotation.w = quaternion[3]
+        transform.transform.rotation.x = float(quaternion[0])
+        transform.transform.rotation.y = float(quaternion[1])
+        transform.transform.rotation.z = float(quaternion[2])
+        transform.transform.rotation.w = float(quaternion[3])
         
         # TF配信
         self.tf_broadcaster.sendTransform(transform)
         
-        self.get_logger().info('TFが配信されました')
+    def publish_transform_continuous(self):
+        """継続的なTF配信"""
+        self.publish_transform()
 
     def reset_points(self):
-        """クリック点をリセット"""
-        self.clicked_points_cam1_2d.clear()
-        self.clicked_points_cam1_3d.clear()
-        self.clicked_points_cam2_2d.clear()
-        self.clicked_points_cam2_3d.clear()
-        self.transformation_matrix = None
-        
-        self.get_logger().info('クリック点がリセットされました')
+        """古い関数 - reset_calibrationに置き換え"""
+        self.reset_calibration()
 
     def save_calibration(self):
         """キャリブレーション結果をファイルに保存"""
-        if self.transformation_matrix is None:
+        if not self.calibration_completed or self.transformation_matrix is None:
             self.get_logger().warn('保存するキャリブレーション結果がありません')
             return
         
         # ホームディレクトリに保存
         home_dir = os.path.expanduser('~')
-        filename = os.path.join(home_dir, 'camera_calibration_result.json')
+        filename = os.path.join(home_dir, 'chessboard_calibration_result.json')
         
         calibration_data = {
             'transformation_matrix': self.transformation_matrix.tolist(),
-            'camera1_points_2d': self.clicked_points_cam1_2d,
-            'camera1_points_3d': [point.tolist() for point in self.clicked_points_cam1_3d],
-            'camera2_points_2d': self.clicked_points_cam2_2d,
-            'camera2_points_3d': [point.tolist() for point in self.clicked_points_cam2_3d],
-            'marker_positions_front': [pos.tolist() for pos in self.marker_positions_front],
-            'marker_positions_top': [pos.tolist() for pos in self.marker_positions_top],
+            'camera_matrix1': self.camera_matrix1.tolist() if self.camera_matrix1 is not None else None,
+            'camera_matrix2': self.camera_matrix2.tolist() if self.camera_matrix2 is not None else None,
+            'dist_coeffs1': self.dist_coeffs1.tolist() if self.dist_coeffs1 is not None else None,
+            'dist_coeffs2': self.dist_coeffs2.tolist() if self.dist_coeffs2 is not None else None,
+            'rotation_matrix': self.rotation_matrix.tolist() if self.rotation_matrix is not None else None,
+            'translation_vector': self.translation_vector.tolist() if self.translation_vector is not None else None,
+            'camera_distance': self.camera_distance,
+            'chessboard_size': self.chessboard_size,
+            'square_size': self.square_size,
+            'num_captured_pairs': len(self.camera1_image_points),
+            'calibration_completed': self.calibration_completed,
             'timestamp': self.get_clock().now().to_msg().sec
         }
         
@@ -536,13 +582,62 @@ class CameraCalibrationROS2(Node):
             with open(filename, 'w') as f:
                 json.dump(calibration_data, f, indent=2)
             
-            self.get_logger().info(f'キャリブレーション結果を保存しました: {filename}')
+            self.get_logger().info(f'チェスボードキャリブレーション結果を保存しました: {filename}')
+            self.get_logger().info(f'カメラ間距離: {self.camera_distance:.1f}mm')
             
         except Exception as e:
             self.get_logger().error(f'保存エラー: {str(e)}')
 
+    def load_calibration(self):
+        """保存されたキャリブレーション結果を読み込み"""
+        home_dir = os.path.expanduser('~')
+        filename = os.path.join(home_dir, 'chessboard_calibration_result.json')
+        
+        if not os.path.exists(filename):
+            self.get_logger().info('保存されたキャリブレーション結果が見つかりません')
+            return
+        
+        try:
+            with open(filename, 'r') as f:
+                calibration_data = json.load(f)
+            
+            # データを復元
+            self.transformation_matrix = np.array(calibration_data['transformation_matrix'])
+            
+            if calibration_data.get('camera_matrix1'):
+                self.camera_matrix1 = np.array(calibration_data['camera_matrix1'])
+            if calibration_data.get('camera_matrix2'):
+                self.camera_matrix2 = np.array(calibration_data['camera_matrix2'])
+            if calibration_data.get('dist_coeffs1'):
+                self.dist_coeffs1 = np.array(calibration_data['dist_coeffs1'])
+            if calibration_data.get('dist_coeffs2'):
+                self.dist_coeffs2 = np.array(calibration_data['dist_coeffs2'])
+            if calibration_data.get('rotation_matrix'):
+                self.rotation_matrix = np.array(calibration_data['rotation_matrix'])
+            if calibration_data.get('translation_vector'):
+                self.translation_vector = np.array(calibration_data['translation_vector'])
+            
+            self.camera_distance = calibration_data.get('camera_distance', 0.0)
+            self.calibration_completed = calibration_data.get('calibration_completed', False)
+            
+            if self.calibration_completed:
+                # 継続的なTF配信を開始
+                if self.tf_timer is None:
+                    self.tf_timer = self.create_timer(1.0/10.0, self.publish_transform_continuous)
+                
+                self.get_logger().info('保存されたキャリブレーション結果を読み込みました')
+                self.get_logger().info(f'カメラ間距離: {self.camera_distance:.1f}mm')
+                self.get_logger().info('TF配信を開始しました')
+            
+        except Exception as e:
+            self.get_logger().error(f'読み込みエラー: {str(e)}')
+
     def destroy_node(self):
         """ノード終了時の処理"""
+        # TF配信を停止
+        if self.tf_timer is not None:
+            self.tf_timer.destroy()
+        
         cv2.destroyAllWindows()
         super().destroy_node()
 
