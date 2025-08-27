@@ -49,10 +49,15 @@ class IntegratedMediaPipeNode(Node):
         )
         
         # ROI state
+        # 'size' を追加（矩形は中心(cx,cy) と size から計算）
+        # デフォルトサイズを大きめに（例: 400）に設定しています。必要であれば数値を変更してください。
         self.roi_states = {
-            'camera_01': {'enabled': False, 'x1': 100, 'y1': 100, 'x2': 500, 'y2': 400},
-            'camera_02': {'enabled': False, 'x1': 100, 'y1': 100, 'x2': 500, 'y2': 400}
+            'camera_01': {'enabled': False, 'cx': 200, 'cy': 200, 'size': 400, 'x1': 100, 'y1': 100, 'x2': 500, 'y2': 400},
+            'camera_02': {'enabled': False, 'cx': 200, 'cy': 200, 'size': 400, 'x1': 100, 'y1': 100, 'x2': 500, 'y2': 400}
         }
+        
+        # 最後に操作した（クリックした）カメラ名。サイズ変更はこのカメラに作用します。
+        self.last_interacted_camera = None
         
         # OpenCV windows setup
         self.opencv_enabled = self.setup_opencv_windows()
@@ -125,14 +130,18 @@ class IntegratedMediaPipeNode(Node):
         """マウスイベントハンドラ"""
         if event == cv2.EVENT_LBUTTONDOWN:
             self.get_logger().info(f"Mouse clicked on {camera_name} at ({x}, {y})")
-            # 簡単なROI設定（クリック位置中心の200x200）
+            # クリック位置を中心にサイズからROIを設定
             roi = self.roi_states[camera_name]
-            roi['x1'] = max(0, x - 100)
-            roi['y1'] = max(0, y - 100)
-            roi['x2'] = x + 100
-            roi['y2'] = y + 100
+            roi['cx'] = x
+            roi['cy'] = y
+            half = roi['size'] // 2
+            roi['x1'] = max(0, x - half)
+            roi['y1'] = max(0, y - half)
+            roi['x2'] = x + half
+            roi['y2'] = y + half
             roi['enabled'] = True
-            self.get_logger().info(f"ROI set for {camera_name}: ({roi['x1']}, {roi['y1']}) to ({roi['x2']}, {roi['y2']})")
+            self.last_interacted_camera = camera_name
+            self.get_logger().info(f"ROI set for {camera_name}: center=({roi['cx']},{roi['cy']}), size={roi['size']} -> ({roi['x1']}, {roi['y1']}) to ({roi['x2']}, {roi['y2']})")
 
     def process_image(self, cv_image, camera_name):
         """画像処理（MediaPipe）"""
@@ -141,12 +150,17 @@ class IntegratedMediaPipeNode(Node):
         
         # ROI抽出
         if roi_state['enabled']:
-            x1, y1, x2, y2 = roi_state['x1'], roi_state['y1'], roi_state['x2'], roi_state['y2']
-            # 境界チェック
-            x1 = max(0, min(x1, width-1))
-            y1 = max(0, min(y1, height-1))
-            x2 = max(x1+1, min(x2, width))
-            y2 = max(y1+1, min(y2, height))
+            # size と中心 (cx, cy) から矩形を再計算（サイズ変更後も中心を保持）
+            half = int(roi_state.get('size', 200) // 2)
+            cx = int(roi_state.get('cx', width//2))
+            cy = int(roi_state.get('cy', height//2))
+            x1 = max(0, cx - half)
+            y1 = max(0, cy - half)
+            x2 = min(width, cx + half)
+            y2 = min(height, cy + half)
+
+            # 保存
+            roi_state['x1'], roi_state['y1'], roi_state['x2'], roi_state['y2'] = x1, y1, x2, y2
             
             processing_image = cv_image[y1:y2, x1:x2]
             
@@ -200,6 +214,8 @@ class IntegratedMediaPipeNode(Node):
                            (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
                 cv2.putText(display_image, 'Press Q to quit OpenCV', 
                            (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                cv2.putText(display_image, 'After clicking: +/- to change ROI size, r to reset', 
+                           (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 1)
                 
                 cv2.imshow(camera_name.replace('_', ' ').title(), display_image)
                 
@@ -213,7 +229,30 @@ class IntegratedMediaPipeNode(Node):
                     # ROIリセット
                     self.roi_states[camera_name]['enabled'] = False
                     self.get_logger().info(f"ROI reset for {camera_name}")
-                    
+                # サイズ増減（最後にクリックしたカメラに対してのみ反映）
+                elif key in (ord('+'), ord('='), ord('-')):
+                    if self.last_interacted_camera == camera_name:
+                        roi = self.roi_states[camera_name]
+                        current_size = int(roi.get('size', 200))
+                        if key in (ord('+'), ord('=')):
+                            new_size = current_size + 40  # 増分は 40px
+                        else:
+                            new_size = max(20, current_size - 40)  # 最小 20px
+                        # 上限は画像サイズに依存させる
+                        max_allowed = max(width, height)
+                        new_size = min(new_size, max_allowed)
+                        roi['size'] = new_size
+                        # 中心が未設定なら画像中心を使う
+                        cx = int(roi.get('cx', width//2))
+                        cy = int(roi.get('cy', height//2))
+                        half = new_size // 2
+                        roi['x1'] = max(0, cx - half)
+                        roi['y1'] = max(0, cy - half)
+                        roi['x2'] = min(width, cx + half)
+                        roi['y2'] = min(height, cy + half)
+                        roi['enabled'] = True
+                        self.get_logger().info(f"ROI size changed for {camera_name}: {current_size} -> {new_size}")
+                        
             except Exception as e:
                 self.get_logger().debug(f"OpenCV display error: {str(e)}")
         
