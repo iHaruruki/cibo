@@ -163,13 +163,11 @@ class IntegratedMediaPipeNode(Node):
             roi_state['x1'], roi_state['y1'], roi_state['x2'], roi_state['y2'] = x1, y1, x2, y2
             
             processing_image = cv_image[y1:y2, x1:x2]
-            
-            # ROI矩形を描画
-            cv2.rectangle(cv_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(cv_image, 'ROI', (x1, y1-10), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         else:
             processing_image = cv_image
+            x1 = y1 = 0
+            x2 = width
+            y2 = height
         
         # MediaPipe処理
         image_rgb = cv2.cvtColor(processing_image, cv2.COLOR_BGR2RGB)
@@ -180,44 +178,50 @@ class IntegratedMediaPipeNode(Node):
         hands_results = self.hands.process(image_rgb)
         
         image_rgb.flags.writeable = True
-        annotated_image = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+        annotated_roi = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
         
-        # ランドマーク描画
+        # ランドマーク描画（ROI内の画像に描画）
         if pose_results.pose_landmarks:
             self.mp_drawing.draw_landmarks(
-                annotated_image, pose_results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
+                annotated_roi, pose_results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
         
         if face_results.multi_face_landmarks:
             for face_landmarks in face_results.multi_face_landmarks:
                 self.mp_drawing.draw_landmarks(
-                    annotated_image, face_landmarks, self.mp_face_mesh.FACEMESH_CONTOURS,
+                    annotated_roi, face_landmarks, self.mp_face_mesh.FACEMESH_CONTOURS,
                     landmark_drawing_spec=None,
                     connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_contours_style())
         
         if hands_results.multi_hand_landmarks:
             for hand_landmarks in hands_results.multi_hand_landmarks:
                 self.mp_drawing.draw_landmarks(
-                    annotated_image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+                    annotated_roi, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
         
-        # ROIが有効な場合、結果を元画像に戻す
+        # -- パブリッシュ用画像（バウンディングボックスは入れない） --
+        # 元画像のコピーにROI内のアノテーションを埋め込む（ただし矩形フレームは描かない）
+        published_image = cv_image.copy()
+        published_image[y1:y2, x1:x2] = annotated_roi
+        
+        # OpenCVで表示用の画像（ここでだけ矩形とラベルを描画）
+        display_image = published_image.copy()
         if roi_state['enabled']:
-            result_image = cv_image.copy()
-            result_image[y1:y2, x1:x2] = annotated_image
-            annotated_image = result_image
+            cv2.rectangle(display_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(display_image, 'ROI', (x1, y1-10), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         
-        # OpenCVで表示
+        # OpenCV表示処理
         if self.opencv_enabled:
             try:
                 # 操作説明を追加
-                display_image = annotated_image.copy()
-                cv2.putText(display_image, f'{camera_name} - Click to set ROI', 
+                disp = display_image.copy()
+                cv2.putText(disp, f'{camera_name} - Click to set ROI', 
                            (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-                cv2.putText(display_image, 'Press Q to quit OpenCV', 
+                cv2.putText(disp, 'Press Q to quit OpenCV', 
                            (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-                cv2.putText(display_image, 'After clicking: +/- to change ROI size, r to reset', 
+                cv2.putText(disp, 'After clicking: +/- to change ROI size, r to reset', 
                            (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 1)
                 
-                cv2.imshow(camera_name.replace('_', ' ').title(), display_image)
+                cv2.imshow(camera_name.replace('_', ' ').title(), disp)
                 
                 # キー入力チェック
                 key = cv2.waitKey(1) & 0xFF
@@ -256,7 +260,7 @@ class IntegratedMediaPipeNode(Node):
             except Exception as e:
                 self.get_logger().debug(f"OpenCV display error: {str(e)}")
         
-        # ランドマークデータ抽出
+        # ランドマークデータ抽出（※既存のスケーリングロジックは維持）
         hand_landmarks = []
         if hands_results.multi_hand_landmarks:
             for hand_landmarks_data in hands_results.multi_hand_landmarks:
@@ -282,7 +286,7 @@ class IntegratedMediaPipeNode(Node):
         else:
             face_landmarks.extend([0.0, 0.0])
         
-        return annotated_image, hand_landmarks, face_landmarks
+        return published_image, hand_landmarks, face_landmarks
 
     def camera1_callback(self, msg):
         """Camera 1 callback"""
@@ -290,7 +294,7 @@ class IntegratedMediaPipeNode(Node):
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             annotated_image, hand_landmarks, face_landmarks = self.process_image(cv_image, "camera_01")
             
-            # Publish results
+            # Publish results (ここではバウンディングボックスは描かれていない画像を送る)
             annotated_msg = self.bridge.cv2_to_imgmsg(annotated_image, "bgr8")
             annotated_msg.header = msg.header
             self.camera1_annotated_pub.publish(annotated_msg)
@@ -312,7 +316,7 @@ class IntegratedMediaPipeNode(Node):
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             annotated_image, hand_landmarks, face_landmarks = self.process_image(cv_image, "camera_02")
             
-            # Publish results
+            # Publish results (ここではバウンディングボックスは描かれていない画像を送る)
             annotated_msg = self.bridge.cv2_to_imgmsg(annotated_image, "bgr8")
             annotated_msg.header = msg.header
             self.camera2_annotated_pub.publish(annotated_msg)
