@@ -52,8 +52,8 @@ class IntegratedMediaPipeNode(Node):
         # 'size' を追加（矩形は中心(cx,cy) と size から計算）
         # デフォルトサイズを大きめに（例: 400）に設定しています。必要であれば数値を変更してください。
         self.roi_states = {
-            'camera_01': {'enabled': False, 'cx': 200, 'cy': 200, 'size': 400, 'x1': 100, 'y1': 100, 'x2': 500, 'y2': 400},
-            'camera_02': {'enabled': False, 'cx': 200, 'cy': 200, 'size': 400, 'x1': 100, 'y1': 100, 'x2': 500, 'y2': 400}
+            'camera_01': {'enabled': False, 'cx': 200, 'cy': 200, 'size': 300, 'x1': 100, 'y1': 100, 'x2': 500, 'y2': 400},
+            'camera_02': {'enabled': False, 'cx': 200, 'cy': 200, 'size': 300, 'x1': 100, 'y1': 100, 'x2': 500, 'y2': 400}
         }
         
         # 最後に操作した（クリックした）カメラ名。サイズ変更はこのカメラに作用します。
