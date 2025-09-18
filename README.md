@@ -4,7 +4,16 @@
 Please follow link
 [OrbbecSDK_ROS2](https://github.com/iHaruruki/OrbbecSDK_ROS2.git)
 2. Setup cibo Repositories
-[cibo](https://github.com/iHaruruki/cibo.git)
+```bash
+$ cd ~/ros2_ws/src
+$ git clone https://github.com/iHaruruki/cibo.git
+```
+Build
+```bash
+$ cd ~/ros2_ws
+$ colcon build --symlink-install --packages-select cibo
+$ source install/setup.bash
+```
 
 ---
 
