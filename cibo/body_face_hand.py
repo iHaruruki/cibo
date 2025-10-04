@@ -1,4 +1,4 @@
-#!/home/ubuntu/ros2_ws/src/cibo/cibo_ws/bin/python
+#!/home/ubuntu/ros2_ws/src/cibo/cibo_ws/bin/python3
 
 import rclpy
 from rclpy.node import Node
