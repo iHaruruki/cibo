@@ -3,7 +3,23 @@
 1. Setup camera
 Please follow link
 [OrbbecSDK_ROS2](https://github.com/iHaruruki/OrbbecSDK_ROS2.git)
-2. Setup cibo Repositories
+
+2. Setup python environment
+If you are using a virtual environment, please refer to the following:
+```bash
+sudo apt install python3.10-venv
+```
+Create a python virtual environment
+```bash
+cd ros2_ws/src/cibo/
+python3 -m venv cibo_ws
+```
+Install pyrhon packages
+```bash
+pip3 install opencv-python mediapipe
+```
+
+3. Setup cibo Repositories
 ```bash
 $ cd ~/ros2_ws/src
 $ git clone https://github.com/iHaruruki/cibo.git
@@ -14,19 +30,6 @@ $ cd ~/ros2_ws
 $ colcon build --symlink-install --packages-select cibo
 $ source install/setup.bash
 ```
-If you are using a virtual environment, please refer to the following:
-```bash
-sudo apt install python3.10-venv
-```
-Create a python virtual environment
-```bash
-cd ros2_ws/src/cibo/
-python3 -m venv cibo_ws
-```
-
-
----
-
 
 ## How to use
 - Run camera
