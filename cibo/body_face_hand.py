@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/ubuntu/ros2_ws/src/cibo/cibo_ws/bin/python
 
 import rclpy
 from rclpy.node import Node
@@ -10,11 +10,14 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import os
+import sys
 
 
 class IntegratedMediaPipeNode(Node):
     def __init__(self):
         super().__init__('integrated_mediapipe_processor')
+        
+        print("Python executable:", sys.executable)
         
         # OpenCV環境チェック
         self.check_opencv_environment()
