@@ -14,16 +14,35 @@ $ cd ~/ros2_ws
 $ colcon build --symlink-install --packages-select cibo
 $ source install/setup.bash
 ```
+If you are using a virtual environment, please refer to the following:
+```bash
+sudo apt install python3.10-venv
+```
+Create a python virtual environment
+```bash
+cd ros2_ws/src/cibo/
+python3 -m venv cibo_ws
+```
+
 
 ---
+
 
 ## How to use
 - Run camera
 ```bash
+# Start a virtual environment if you want to use.
+cd ros2_ws/src/cibo/
+source ./cibo_ws/bin/activate
+# Launch camera
 ros2 launch orbbec_camera multi_camera.launch.py
 ```
 - Run body_face_hand node
 ```bash
+# Start a virtual environment if you want to use.
+cd ros2_ws/src/cibo/
+source ./cibo_ws/bin/activate
+# Run node
 ros2 run cibo body_face_hand_node
 ```
 - rosbag
