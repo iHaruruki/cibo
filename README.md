@@ -24,7 +24,7 @@ ros2 launch orbbec_camera multi_camera.launch.py
 ```
 - Run body_face_hand node
 ```bash
-ros2 cibo run body_face_hand_node
+ros2 run cibo body_face_hand_node
 ```
 - rosbag
 If you want to record images, use rosbag.
