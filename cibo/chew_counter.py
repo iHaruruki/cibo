@@ -34,11 +34,11 @@ class ChewingFromLandmarksNode(Node):
 
         # -------- Parameters --------
         self.declare_parameter('landmarks_topic', '/front_camera/face_landmarks')
-        self.declare_parameter('mar_high', 0.020)         # 開いた判定
-        self.declare_parameter('mar_low',  0.012)         # 閉じた判定
-        self.declare_parameter('ema_alpha', 0.25)         # MAR平滑化
-        self.declare_parameter('min_interval_sec', 0.25) # 二重カウント防止
-        self.declare_parameter('show_debug', True)      # デバッグテキスト表示
+        self.declare_parameter('mar_high', 0.020)           # 開いた判定
+        self.declare_parameter('mar_low',  0.012)           # 閉じた判定
+        self.declare_parameter('ema_alpha', 0.25)           # MAR平滑化
+        self.declare_parameter('min_interval_sec', 0.25)    # 二重カウント防止
+        self.declare_parameter('show_debug', True)          # デバッグテキスト表示
 
         self.topic         = self.get_parameter('landmarks_topic').value
         self.mar_high      = float(self.get_parameter('mar_high').value)
