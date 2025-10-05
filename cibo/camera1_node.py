@@ -22,7 +22,7 @@ class HolisticPoseEstimator(Node):
         # Declare ROS parameters
         self.declare_parameter('detection_confidence', 0.5)
         self.declare_parameter('tracking_confidence', 0.5)
-        self.declare_parameter('roi_size', 400)
+        self.declare_parameter('roi_size', 300)
         self.declare_parameter('enable_face', True)
         self.declare_parameter('enable_pose', True)
         self.declare_parameter('enable_hands', True)
