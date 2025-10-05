@@ -79,11 +79,15 @@ MAR（Mouth Aspect Ratio）は以下の4点のランドマーク座標を使用�
 | 上唇中央 | 13 | 上唇の内側中央 |
 | 下唇中央 | 14 | 下唇の内側中央 |
 
-式：
+式：\
+```math
 $$ MAR = \frac{vertical distance (upper–lower lip)}{horizontal distance (left–right corner)} $$
+```
 
-MediaPipe Face Mesh の代表点で書くと：
+MediaPipe Face Mesh の代表点で書くと：\
+```math
 $$ MAR = \frac{|P_{13} - P_{14}|}{|P_{61} - P_{291}|} $$
+```
 
 ## Topic List
 
