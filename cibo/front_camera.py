@@ -2,7 +2,6 @@
 
 import rclpy
 from rclpy.node import Node
-from rclpy.parameter import Parameter
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32MultiArray
 from cv_bridge import CvBridge
@@ -10,63 +9,53 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
-
 class FrontCameraNode(Node):
     def __init__(self):
         super().__init__('front_camera')
         
-        # ROS Parameters
-        self.declare_parameter('roi_enabled', False)
-        self.declare_parameter('roi_x', 100)
-        self.declare_parameter('roi_y', 100)
-        self.declare_parameter('roi_width', 400)
-        self.declare_parameter('roi_height', 300)
-        self.declare_parameter('detection_confidence', 0.5)
-        self.declare_parameter('tracking_confidence', 0.5)
-        self.declare_parameter('face_detection_confidence', 0.5)
-        self.declare_parameter('face_tracking_confidence', 0.5)
+        # Parameters
+        self.declare_parameter('roi_x', 0)
+        self.declare_parameter('roi_y', 0)
+        self.declare_parameter('roi_width', 640)
+        self.declare_parameter('roi_height', 480)
+        self.declare_parameter('enable_roi', True)
         
         # Initialize CV Bridge
         self.bridge = CvBridge()
         
         # Initialize MediaPipe
+        self.mp_drawing = mp.solutions.drawing_utils
         self.mp_holistic = mp.solutions.holistic
         self.mp_face_mesh = mp.solutions.face_mesh
-        self.mp_drawing = mp.solutions.drawing_utils
         self.mp_drawing_styles = mp.solutions.drawing_styles
         
-        # Get parameters
-        detection_conf = self.get_parameter('detection_confidence').get_parameter_value().double_value
-        tracking_conf = self.get_parameter('tracking_confidence').get_parameter_value().double_value
-        face_detection_conf = self.get_parameter('face_detection_confidence').get_parameter_value().double_value
-        face_tracking_conf = self.get_parameter('face_tracking_confidence').get_parameter_value().double_value
-        
+        # Initialize models with refined landmarks for detailed face mesh
         self.holistic = self.mp_holistic.Holistic(
-            min_detection_confidence=detection_conf,
-            min_tracking_confidence=tracking_conf
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5
         )
         
-        # Face mesh for detailed face landmarks
+        # Face mesh with refined landmarks (468 points)
         self.face_mesh = self.mp_face_mesh.FaceMesh(
             max_num_faces=1,
-            refine_landmarks=True,
-            min_detection_confidence=face_detection_conf,
-            min_tracking_confidence=face_tracking_conf
+            refine_landmarks=True,  # This enables 468 detailed landmarks
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5
         )
         
-        # ROI state
-        self.roi_enabled = self.get_parameter('roi_enabled').get_parameter_value().bool_value
-        self.roi_x = self.get_parameter('roi_x').get_parameter_value().integer_value
-        self.roi_y = self.get_parameter('roi_y').get_parameter_value().integer_value
-        self.roi_width = self.get_parameter('roi_width').get_parameter_value().integer_value
-        self.roi_height = self.get_parameter('roi_height').get_parameter_value().integer_value
-        
         # ROI selection state
-        self.selecting_roi = False
+        self.roi_selecting = False
         self.roi_start_point = None
         self.roi_end_point = None
+        self.roi_params = {
+            'x': self.get_parameter('roi_x').value,
+            'y': self.get_parameter('roi_y').value,
+            'width': self.get_parameter('roi_width').value,
+            'height': self.get_parameter('roi_height').value,
+            'enabled': self.get_parameter('enable_roi').value
+        }
         
-        # OpenCV setup
+        # OpenCV window setup
         self.setup_opencv_window()
         
         # Subscriber
@@ -99,186 +88,137 @@ class FrontCameraNode(Node):
     def mouse_callback(self, event, x, y, flags, param):
         """Mouse callback for ROI selection"""
         if event == cv2.EVENT_LBUTTONDOWN:
-            self.selecting_roi = True
+            self.roi_selecting = True
             self.roi_start_point = (x, y)
             self.get_logger().info(f'ROI start point: ({x}, {y})')
             
-        elif event == cv2.EVENT_LBUTTONUP and self.selecting_roi:
+        elif event == cv2.EVENT_LBUTTONUP and self.roi_selecting:
+            self.roi_selecting = False
             self.roi_end_point = (x, y)
-            self.selecting_roi = False
             
-            # Calculate ROI rectangle
-            x1 = min(self.roi_start_point[0], self.roi_end_point[0])
-            y1 = min(self.roi_start_point[1], self.roi_end_point[1])
-            x2 = max(self.roi_start_point[0], self.roi_end_point[0])
-            y2 = max(self.roi_start_point[1], self.roi_end_point[1])
+            # Calculate ROI parameters
+            x1, y1 = self.roi_start_point
+            x2, y2 = self.roi_end_point
             
-            self.roi_x = x1
-            self.roi_y = y1
-            self.roi_width = x2 - x1
-            self.roi_height = y2 - y1
-            self.roi_enabled = True
+            roi_x = min(x1, x2)
+            roi_y = min(y1, y2)
+            roi_width = abs(x2 - x1)
+            roi_height = abs(y2 - y1)
             
-            # Update parameters
+            self.roi_params = {
+                'x': roi_x,
+                'y': roi_y,
+                'width': roi_width,
+                'height': roi_height,
+                'enabled': True
+            }
+            
+            # Update ROS parameters
             self.set_parameters([
-                Parameter('roi_enabled', Parameter.Type.BOOL, True),
-                Parameter('roi_x', Parameter.Type.INTEGER, self.roi_x),
-                Parameter('roi_y', Parameter.Type.INTEGER, self.roi_y),
-                Parameter('roi_width', Parameter.Type.INTEGER, self.roi_width),
-                Parameter('roi_height', Parameter.Type.INTEGER, self.roi_height)
+                rclpy.parameter.Parameter('roi_x', rclpy.Parameter.Type.INTEGER, roi_x),
+                rclpy.parameter.Parameter('roi_y', rclpy.Parameter.Type.INTEGER, roi_y),
+                rclpy.parameter.Parameter('roi_width', rclpy.Parameter.Type.INTEGER, roi_width),
+                rclpy.parameter.Parameter('roi_height', rclpy.Parameter.Type.INTEGER, roi_height),
+                rclpy.parameter.Parameter('enable_roi', rclpy.Parameter.Type.BOOL, True)
             ])
             
-            self.get_logger().info(f'ROI set: x={self.roi_x}, y={self.roi_y}, width={self.roi_width}, height={self.roi_height}')
-            
-        elif event == cv2.EVENT_MOUSEMOVE and self.selecting_roi:
-            self.roi_end_point = (x, y)
-
-    def process_image(self, cv_image):
-        """Process image with MediaPipe Holistic and Face Mesh"""
-        height, width = cv_image.shape[:2]
-        
-        # Apply ROI if enabled
-        if self.roi_enabled:
-            # Ensure ROI is within image bounds
-            x1 = max(0, min(self.roi_x, width - 1))
-            y1 = max(0, min(self.roi_y, height - 1))
-            x2 = max(x1 + 1, min(self.roi_x + self.roi_width, width))
-            y2 = max(y1 + 1, min(self.roi_y + self.roi_height, height))
-            
-            processing_image = cv_image[y1:y2, x1:x2]
-            roi_offset = (x1, y1)
-        else:
-            processing_image = cv_image
-            roi_offset = (0, 0)
-            x1 = y1 = 0
-            x2 = width
-            y2 = height
-        
-        # MediaPipe processing
-        image_rgb = cv2.cvtColor(processing_image, cv2.COLOR_BGR2RGB)
-        image_rgb.flags.writeable = False
-        
-        # Process with Holistic
-        holistic_results = self.holistic.process(image_rgb)
-        
-        # Process with Face Mesh for detailed face landmarks
-        face_mesh_results = self.face_mesh.process(image_rgb)
-        
-        image_rgb.flags.writeable = True
-        annotated_roi = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
-        
-        # Draw Holistic landmarks on ROI
-        if holistic_results.pose_landmarks:
-            self.mp_drawing.draw_landmarks(
-                annotated_roi, holistic_results.pose_landmarks, self.mp_holistic.POSE_CONNECTIONS,
-                landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style())
-        
-        if holistic_results.left_hand_landmarks:
-            self.mp_drawing.draw_landmarks(
-                annotated_roi, holistic_results.left_hand_landmarks, self.mp_holistic.HAND_CONNECTIONS,
-                landmark_drawing_spec=self.mp_drawing_styles.get_default_hand_landmarks_style())
-        
-        if holistic_results.right_hand_landmarks:
-            self.mp_drawing.draw_landmarks(
-                annotated_roi, holistic_results.right_hand_landmarks, self.mp_holistic.HAND_CONNECTIONS,
-                landmark_drawing_spec=self.mp_drawing_styles.get_default_hand_landmarks_style())
-        
-        # Draw detailed face mesh
-        if face_mesh_results.multi_face_landmarks:
-            for face_landmarks in face_mesh_results.multi_face_landmarks:
-                self.mp_drawing.draw_landmarks(
-                    annotated_roi, face_landmarks, self.mp_face_mesh.FACEMESH_CONTOURS,
-                    landmark_drawing_spec=None,
-                    connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_contours_style())
-                
-                # Draw additional face mesh details
-                self.mp_drawing.draw_landmarks(
-                    annotated_roi, face_landmarks, self.mp_face_mesh.FACEMESH_IRISES,
-                    landmark_drawing_spec=None,
-                    connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_iris_connections_style())
-        
-        # Create full annotated image
-        annotated_image = cv_image.copy()
-        if self.roi_enabled:
-            annotated_image[y1:y2, x1:x2] = annotated_roi
-        else:
-            annotated_image = annotated_roi
-        
-        # Extract landmark data
-        pose_landmarks = self.extract_pose_landmarks(holistic_results, width, height, roi_offset)
-        face_landmarks = self.extract_face_landmarks(face_mesh_results, width, height, roi_offset)
-        left_hand_landmarks = self.extract_hand_landmarks(holistic_results.left_hand_landmarks, width, height, roi_offset)
-        right_hand_landmarks = self.extract_hand_landmarks(holistic_results.right_hand_landmarks, width, height, roi_offset)
-        
-        return annotated_image, pose_landmarks, face_landmarks, left_hand_landmarks, right_hand_landmarks
-
-    def extract_pose_landmarks(self, results, width, height, roi_offset):
-        """Extract pose landmarks"""
-        landmarks = []
-        if results.pose_landmarks:
-            for landmark in results.pose_landmarks.landmark:
-                # Convert to absolute coordinates and adjust for ROI offset
-                x = landmark.x * self.roi_width + roi_offset[0] if self.roi_enabled else landmark.x * width
-                y = landmark.y * self.roi_height + roi_offset[1] if self.roi_enabled else landmark.y * height
-                landmarks.extend([x, y, landmark.z])
-        return landmarks
-
-    def extract_face_landmarks(self, results, width, height, roi_offset):
-        """Extract detailed face landmarks from Face Mesh"""
-        landmarks = []
-        if results.multi_face_landmarks:
-            for face_landmarks in results.multi_face_landmarks:
-                for landmark in face_landmarks.landmark:
-                    # Convert to absolute coordinates and adjust for ROI offset
-                    x = landmark.x * self.roi_width + roi_offset[0] if self.roi_enabled else landmark.x * width
-                    y = landmark.y * self.roi_height + roi_offset[1] if self.roi_enabled else landmark.y * height
-                    landmarks.extend([x, y, landmark.z])
-        return landmarks
-
-    def extract_hand_landmarks(self, hand_landmarks, width, height, roi_offset):
-        """Extract hand landmarks"""
-        landmarks = []
-        if hand_landmarks:
-            for landmark in hand_landmarks.landmark:
-                # Convert to absolute coordinates and adjust for ROI offset
-                x = landmark.x * self.roi_width + roi_offset[0] if self.roi_enabled else landmark.x * width
-                y = landmark.y * self.roi_height + roi_offset[1] if self.roi_enabled else landmark.y * height
-                landmarks.extend([x, y, landmark.z])
-        return landmarks
+            self.get_logger().info(f'ROI set: x={roi_x}, y={roi_y}, width={roi_width}, height={roi_height}')
 
     def image_callback(self, msg):
-        """Image callback"""
+        """Image callback for processing"""
         try:
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            height, width = cv_image.shape[:2]
             
-            # Process image
-            annotated_image, pose_landmarks, face_landmarks, left_hand_landmarks, right_hand_landmarks = self.process_image(cv_image)
+            # Apply ROI if enabled
+            if self.roi_params['enabled']:
+                x = max(0, self.roi_params['x'])
+                y = max(0, self.roi_params['y'])
+                w = min(self.roi_params['width'], width - x)
+                h = min(self.roi_params['height'], height - y)
+                
+                if w > 0 and h > 0:
+                    roi_image = cv_image[y:y+h, x:x+w]
+                    processing_image = roi_image
+                    offset_x, offset_y = x, y
+                else:
+                    processing_image = cv_image
+                    offset_x, offset_y = 0, 0
+            else:
+                processing_image = cv_image
+                offset_x, offset_y = 0, 0
             
-            # Display image with ROI selection
-            display_image = annotated_image.copy()
+            # MediaPipe processing
+            image_rgb = cv2.cvtColor(processing_image, cv2.COLOR_BGR2RGB)
+            image_rgb.flags.writeable = False
             
-            # Draw ROI rectangle
-            if self.roi_enabled:
+            # Process with both Holistic and Face Mesh
+            holistic_results = self.holistic.process(image_rgb)
+            face_results = self.face_mesh.process(image_rgb)
+            
+            image_rgb.flags.writeable = True
+            annotated_image = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+            
+            # Draw holistic landmarks
+            if holistic_results.pose_landmarks:
+                self.mp_drawing.draw_landmarks(
+                    annotated_image, holistic_results.pose_landmarks, self.mp_holistic.POSE_CONNECTIONS,
+                    landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style())
+            
+            if holistic_results.left_hand_landmarks:
+                self.mp_drawing.draw_landmarks(
+                    annotated_image, holistic_results.left_hand_landmarks, self.mp_holistic.HAND_CONNECTIONS)
+            
+            if holistic_results.right_hand_landmarks:
+                self.mp_drawing.draw_landmarks(
+                    annotated_image, holistic_results.right_hand_landmarks, self.mp_holistic.HAND_CONNECTIONS)
+            
+            # Draw detailed face mesh (468 points)
+            if face_results.multi_face_landmarks:
+                for face_landmarks in face_results.multi_face_landmarks:
+                    # Draw face mesh connections
+                    self.mp_drawing.draw_landmarks(
+                        annotated_image, face_landmarks, self.mp_face_mesh.FACEMESH_CONTOURS,
+                        landmark_drawing_spec=None,
+                        connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_contours_style())
+                    
+                    # Draw tesselation for more detailed view
+                    self.mp_drawing.draw_landmarks(
+                        annotated_image, face_landmarks, self.mp_face_mesh.FACEMESH_TESSELATION,
+                        landmark_drawing_spec=None,
+                        connection_drawing_spec=mp.solutions.drawing_styles.DrawingSpec(
+                            color=(80, 110, 10), thickness=1, circle_radius=1))
+            
+            # Create full-size annotated image
+            full_annotated = cv_image.copy()
+            if self.roi_params['enabled'] and w > 0 and h > 0:
+                full_annotated[y:y+h, x:x+w] = annotated_image
+            else:
+                full_annotated = annotated_image
+            
+            # Display image with ROI rectangle
+            display_image = full_annotated.copy()
+            if self.roi_params['enabled']:
                 cv2.rectangle(display_image, 
-                            (self.roi_x, self.roi_y), 
-                            (self.roi_x + self.roi_width, self.roi_y + self.roi_height), 
+                            (self.roi_params['x'], self.roi_params['y']),
+                            (self.roi_params['x'] + self.roi_params['width'],
+                             self.roi_params['y'] + self.roi_params['height']),
                             (0, 255, 0), 2)
                 cv2.putText(display_image, 'ROI', 
-                          (self.roi_x, self.roi_y - 10), 
-                          cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                           (self.roi_params['x'], self.roi_params['y'] - 10),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
             
-            # Draw current selection
-            if self.selecting_roi and self.roi_start_point and self.roi_end_point:
-                cv2.rectangle(display_image, self.roi_start_point, self.roi_end_point, (255, 0, 0), 2)
-            
-            # Add instructions
-            cv2.putText(display_image, 'Drag to select ROI, Press R to reset, Q to quit', 
+            cv2.putText(display_image, 'Drag to select ROI, Press Q to quit, R to reset ROI',
                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
             
-            # Add landmark count info
-            face_count = len(face_landmarks) // 3 if face_landmarks else 0
+            # Display landmark count info
+            face_count = 0
+            if face_results.multi_face_landmarks:
+                for face_landmarks in face_results.multi_face_landmarks:
+                    face_count = len(face_landmarks.landmark)
+            
             cv2.putText(display_image, f'Face landmarks: {face_count}', 
-                       (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+                       (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
             
             cv2.imshow('Front Camera - ROI Selection', display_image)
             
@@ -286,38 +226,72 @@ class FrontCameraNode(Node):
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
                 cv2.destroyAllWindows()
-                rclpy.shutdown()
             elif key == ord('r'):
-                self.roi_enabled = False
-                self.set_parameters([Parameter('roi_enabled', Parameter.Type.BOOL, False)])
+                self.roi_params['enabled'] = False
+                self.set_parameters([
+                    rclpy.parameter.Parameter('enable_roi', rclpy.Parameter.Type.BOOL, False)
+                ])
                 self.get_logger().info('ROI reset')
             
-            # Publish results (always publish, even if empty)
             # Publish annotated image
-            annotated_msg = self.bridge.cv2_to_imgmsg(annotated_image, "bgr8")
+            annotated_msg = self.bridge.cv2_to_imgmsg(full_annotated, "bgr8")
             annotated_msg.header = msg.header
             self.annotated_pub.publish(annotated_msg)
             
-            # Publish landmarks
+            # Extract and publish landmarks
+            proc_height, proc_width = processing_image.shape[:2]
+            
+            # Pose landmarks
+            pose_landmarks = []
+            if holistic_results.pose_landmarks:
+                for landmark in holistic_results.pose_landmarks.landmark:
+                    x_coord = (landmark.x * proc_width) + offset_x
+                    y_coord = (landmark.y * proc_height) + offset_y
+                    pose_landmarks.extend([x_coord, y_coord, landmark.z])
+            
             pose_msg = Float32MultiArray()
             pose_msg.data = pose_landmarks
             self.pose_landmarks_pub.publish(pose_msg)
+            
+            # Face landmarks (468 detailed points from Face Mesh)
+            face_landmarks = []
+            if face_results.multi_face_landmarks:
+                for face_landmarks_data in face_results.multi_face_landmarks:
+                    for landmark in face_landmarks_data.landmark:
+                        x_coord = (landmark.x * proc_width) + offset_x
+                        y_coord = (landmark.y * proc_height) + offset_y
+                        face_landmarks.extend([x_coord, y_coord, landmark.z])
             
             face_msg = Float32MultiArray()
             face_msg.data = face_landmarks
             self.face_landmarks_pub.publish(face_msg)
             
+            # Left hand landmarks
+            left_hand_landmarks = []
+            if holistic_results.left_hand_landmarks:
+                for landmark in holistic_results.left_hand_landmarks.landmark:
+                    x_coord = (landmark.x * proc_width) + offset_x
+                    y_coord = (landmark.y * proc_height) + offset_y
+                    left_hand_landmarks.extend([x_coord, y_coord, landmark.z])
+            
             left_hand_msg = Float32MultiArray()
             left_hand_msg.data = left_hand_landmarks
             self.left_hand_landmarks_pub.publish(left_hand_msg)
             
+            # Right hand landmarks
+            right_hand_landmarks = []
+            if holistic_results.right_hand_landmarks:
+                for landmark in holistic_results.right_hand_landmarks.landmark:
+                    x_coord = (landmark.x * proc_width) + offset_x
+                    y_coord = (landmark.y * proc_height) + offset_y
+                    right_hand_landmarks.extend([x_coord, y_coord, landmark.z])
+            
             right_hand_msg = Float32MultiArray()
             right_hand_msg.data = right_hand_landmarks
             self.right_hand_landmarks_pub.publish(right_hand_msg)
-                
+            
         except Exception as e:
             self.get_logger().error(f'Error processing image: {str(e)}')
-
 
 def main(args=None):
     rclpy.init(args=args)
@@ -332,7 +306,6 @@ def main(args=None):
         cv2.destroyAllWindows()
         node.destroy_node()
         rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
