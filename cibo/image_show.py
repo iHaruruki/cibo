@@ -41,6 +41,18 @@ class ImageShowNode(Node):
             self.top_camera_callback,
             sensor_qos
         )
+        self.front_camera_pose_sub = self.create_subscription(
+            Image,
+            '/front_camera/annotated_image',
+            self.front_camera_callback,
+            sensor_qos
+        )
+        self.front_camera_pose_sub = self.create_subscription(
+            Image,
+            '/top_camera/annotated_image',
+            self.top_camera_callback,
+            sensor_qos
+        )
 
         # --- GUI timer (process imshow + window events) ---
         # 30ms周期で描画＆イベント処理
@@ -68,6 +80,18 @@ class ImageShowNode(Node):
         except Exception as e:
             self.get_logger().warn(f'Top image convert failed: {e}')
 
+    def front_camera_pose_callback(self, msg: Image):
+        try:
+            self.front_camera_pose_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        except Exception as e:
+            self.get_logger().warn(f'Front camera pose image convert failed: {e}')
+
+    def top_camera_pose_callback(self, msg: Image):
+        try:
+            self.top_camera_pose_img = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        except Exception as e:
+            self.get_logger().warn(f'Top camera pose image convert failed: {e}')
+
     def gui_loop(self):
         # Front
         if self.front_img is not None:
@@ -78,6 +102,16 @@ class ImageShowNode(Node):
         if self.top_img is not None:
             view = self.resize_if_needed(self.top_img)
             cv2.imshow('Top Camera', view)
+
+        # Front Pose
+        if self.front_camera_pose_img is not None:
+            view = self.resize_if_needed(self.front_camera_pose_img)
+            cv2.imshow('Front Camera Pose', view)
+
+        # Top Pose
+        if self.top_camera_pose_img is not None:
+            view = self.resize_if_needed(self.top_camera_pose_img)
+            cv2.imshow('Top Camera Pose', view)
 
         # 必須: GUIイベント処理
         key = cv2.waitKey(1) & 0xFF
