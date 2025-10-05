@@ -41,7 +41,7 @@ ros2 launch cibo cibo.launch.py
 ```bash
 ros2 run cibo image_show_node
 ```
-- Run chew count node
+- Run chew count node / 咀嚼回数
 ```bash
 ros2 run cibo chew_counter_node
 ```
