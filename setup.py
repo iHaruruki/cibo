@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'top_camera_node = cibo.top_camera:main',
             'front_camera_node = cibo.front_camera:main',
+            'chew_counter_node = cibo.chew_counter:main',
         ],
     },
 )
