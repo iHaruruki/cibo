@@ -1,321 +1,391 @@
 #!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
+from rclpy.parameter import Parameter
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import Point
 from std_msgs.msg import Float32MultiArray
 from cv_bridge import CvBridge
 import cv2
 import mediapipe as mp
 import numpy as np
-import time
 import os
+import sys
 
 
-class HolisticCamera01Node(Node):
-    """
-    Camera 01 専用 MediaPipe Holistic ノード
-    - /camera_01/color/image_raw を購読
-    - 推論結果を /mp/camera_01/... にパブリッシュ
-    - OpenCV ウィンドウで ROI 操作
-    - ROS parametersで設定管理
-    """
-
+class HolisticPoseEstimatorNode(Node):
     def __init__(self):
-        super().__init__('holistic_camera_01')
-
+        super().__init__('holistic_pose_estimator')
+        
+        self.get_logger().info("Initializing Holistic Pose Estimator Node...")
+        
         # ROS Parameters
-        self.declare_parameter('camera_name', 'camera_01')
-        self.declare_parameter('image_topic', '/camera_01/color/image_raw')
-        self.declare_parameter('publish_ns', 'mp')
-        self.declare_parameter('use_opencv_view', True)
-        self.declare_parameter('enable_roi', True)
-        self.declare_parameter('initial_roi_size', 320)
-        self.declare_parameter('model_complexity', 1)
-        self.declare_parameter('refine_face', True)
-        self.declare_parameter('min_detection_confidence', 0.5)
-        self.declare_parameter('min_tracking_confidence', 0.5)
-        self.declare_parameter('best_effort_qos', True)
-
-        # Get parameters
-        self.camera_name = self.get_parameter('camera_name').get_parameter_value().string_value
-        self.image_topic = self.get_parameter('image_topic').get_parameter_value().string_value
-        self.publish_ns = self.get_parameter('publish_ns').get_parameter_value().string_value
-        self.use_opencv_view = self.get_parameter('use_opencv_view').get_parameter_value().bool_value
-        self.enable_roi = self.get_parameter('enable_roi').get_parameter_value().bool_value
-        self.initial_roi_size = self.get_parameter('initial_roi_size').get_parameter_value().integer_value
-        self.model_complexity = self.get_parameter('model_complexity').get_parameter_value().integer_value
-        self.refine_face = self.get_parameter('refine_face').get_parameter_value().bool_value
-        self.min_detection_confidence = self.get_parameter('min_detection_confidence').get_parameter_value().double_value
-        self.min_tracking_confidence = self.get_parameter('min_tracking_confidence').get_parameter_value().double_value
-        self.best_effort_qos = self.get_parameter('best_effort_qos').get_parameter_value().bool_value
-
-        # Initialize CV Bridge and MediaPipe
-        self.bridge = CvBridge()
-        self.mp_holistic = mp.solutions.holistic
-        self.mp_drawing = mp.solutions.drawing_utils
-        self.mp_styles = mp.solutions.drawing_styles
-        self.holistic = self.mp_holistic.Holistic(
-            static_image_mode=False,
-            model_complexity=self.model_complexity,
-            smooth_landmarks=True,
-            enable_segmentation=False,
-            refine_face_landmarks=self.refine_face,
-            min_detection_confidence=self.min_detection_confidence,
-            min_tracking_confidence=self.min_tracking_confidence
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('min_detection_confidence', 0.5),
+                ('min_tracking_confidence', 0.5),
+                ('model_complexity', 2),
+                ('smooth_landmarks', True),
+                ('enable_segmentation', True),
+                ('smooth_segmentation', True),
+                ('refine_face_landmarks', True),
+                ('roi_enabled', False),
+                ('roi_x', 100),
+                ('roi_y', 100),
+                ('roi_width', 400),
+                ('roi_height', 400),
+                ('show_opencv_window', True)
+            ]
         )
-
+        
+        # Get parameters
+        self.min_detection_confidence = self.get_parameter('min_detection_confidence').value
+        self.min_tracking_confidence = self.get_parameter('min_tracking_confidence').value
+        self.model_complexity = self.get_parameter('model_complexity').value
+        self.smooth_landmarks = self.get_parameter('smooth_landmarks').value
+        self.enable_segmentation = self.get_parameter('enable_segmentation').value
+        self.smooth_segmentation = self.get_parameter('smooth_segmentation').value
+        self.refine_face_landmarks = self.get_parameter('refine_face_landmarks').value
+        self.show_opencv_window = self.get_parameter('show_opencv_window').value
+        
+        # Initialize CV Bridge
+        self.bridge = CvBridge()
+        
+        # Initialize MediaPipe Holistic
+        self.mp_drawing = mp.solutions.drawing_utils
+        self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.mp_holistic = mp.solutions.holistic
+        
+        self.holistic = self.mp_holistic.Holistic(
+            min_detection_confidence=self.min_detection_confidence,
+            min_tracking_confidence=self.min_tracking_confidence,
+            model_complexity=self.model_complexity,
+            smooth_landmarks=self.smooth_landmarks,
+            enable_segmentation=self.enable_segmentation,
+            smooth_segmentation=self.smooth_segmentation,
+            refine_face_landmarks=self.refine_face_landmarks
+        )
+        
         # ROI state
         self.roi_state = {
-            'enabled': False,
-            'cx': 200,
-            'cy': 200,
-            'size': int(self.initial_roi_size),
-            'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0
+            'enabled': self.get_parameter('roi_enabled').value,
+            'x': self.get_parameter('roi_x').value,
+            'y': self.get_parameter('roi_y').value,
+            'width': self.get_parameter('roi_width').value,
+            'height': self.get_parameter('roi_height').value,
+            'cx': self.get_parameter('roi_x').value + self.get_parameter('roi_width').value // 2,
+            'cy': self.get_parameter('roi_y').value + self.get_parameter('roi_height').value // 2
         }
-        self.last_click_time = 0.0
-
-        # Initialize OpenCV window
-        self.opencv_available = False
-        if self.use_opencv_view:
-            self.opencv_available = self._init_window()
-
-        # QoS settings
-        qos = QoSProfile(
-            reliability=ReliabilityPolicy.BEST_EFFORT if self.best_effort_qos else ReliabilityPolicy.RELIABLE,
-            history=HistoryPolicy.KEEP_LAST,
-            depth=5,
-            durability=DurabilityPolicy.VOLATILE
+        
+        # OpenCV window setup
+        self.opencv_enabled = False
+        if self.show_opencv_window:
+            self.opencv_enabled = self.setup_opencv_window()
+        
+        # Subscribers
+        self.image_sub = self.create_subscription(
+            Image, 
+            '/camera_01/color/image_raw', 
+            self.image_callback, 
+            10
         )
-
-        # Subscriber
-        self.sub = self.create_subscription(
-            Image, self.image_topic, self.image_callback, qos
-        )
-
+        
         # Publishers
-        base = f'/{self.publish_ns}/{self.camera_name}'
-        self.annotated_pub = self.create_publisher(Image, f'{base}/annotated_image', 10)
-        self.pose_pub = self.create_publisher(Float32MultiArray, f'{base}/pose_landmarks', 10)
-        self.face_pub = self.create_publisher(Float32MultiArray, f'{base}/face_landmarks', 10)
-        self.left_hand_pub = self.create_publisher(Float32MultiArray, f'{base}/left_hand_landmarks', 10)
-        self.right_hand_pub = self.create_publisher(Float32MultiArray, f'{base}/right_hand_landmarks', 10)
+        self.annotated_image_pub = self.create_publisher(
+            Image, 
+            '/holistic/annotated_image', 
+            10
+        )
+        
+        self.pose_landmarks_pub = self.create_publisher(
+            Float32MultiArray, 
+            '/holistic/pose_landmarks', 
+            10
+        )
+        
+        self.face_landmarks_pub = self.create_publisher(
+            Float32MultiArray, 
+            '/holistic/face_landmarks', 
+            10
+        )
+        
+        self.left_hand_landmarks_pub = self.create_publisher(
+            Float32MultiArray, 
+            '/holistic/left_hand_landmarks', 
+            10
+        )
+        
+        self.right_hand_landmarks_pub = self.create_publisher(
+            Float32MultiArray, 
+            '/holistic/right_hand_landmarks', 
+            10
+        )
+        
+        self.get_logger().info('Holistic Pose Estimator Node initialized successfully')
+        self.get_logger().info(f'ROI enabled: {self.roi_state["enabled"]}')
+        if self.roi_state['enabled']:
+            self.get_logger().info(f'ROI: ({self.roi_state["x"]}, {self.roi_state["y"]}) - '
+                                 f'{self.roi_state["width"]}x{self.roi_state["height"]}')
 
-        self.get_logger().info(f'[{self.camera_name}] Holistic node started')
-        self.get_logger().info(f'Subscribing to: {self.image_topic}')
-        self.get_logger().info(f'Publishing to: {base}/*')
-
-    def _window_name(self):
-        return f'Holistic {self.camera_name}'
-
-    def _init_window(self):
-        """Initialize OpenCV window and mouse callback"""
+    def setup_opencv_window(self):
+        """OpenCVウィンドウのセットアップ"""
         try:
-            self.get_logger().info(f"OpenCV version: {cv2.__version__}")
-            self.get_logger().info(f"DISPLAY: {os.environ.get('DISPLAY', 'Not set')}")
-            win = self._window_name()
-            cv2.namedWindow(win, cv2.WINDOW_AUTOSIZE)
-            cv2.setMouseCallback(win, self._mouse_callback)
+            cv2.namedWindow('Holistic Pose Estimator', cv2.WINDOW_AUTOSIZE)
+            cv2.setMouseCallback('Holistic Pose Estimator', self.mouse_callback)
+            
+            self.get_logger().info("OpenCV window setup successful")
             return True
+            
         except Exception as e:
-            self.get_logger().warn(f"OpenCV window init failed: {e}")
+            self.get_logger().error(f"Failed to setup OpenCV window: {str(e)}")
             return False
 
-    def _mouse_callback(self, event, x, y, flags, param=None):
-        """Handle mouse clicks for ROI setting"""
-        if event == cv2.EVENT_LBUTTONDOWN and self.enable_roi:
-            now = time.time()
-            if now - self.last_click_time < 0.05:  # Debounce
-                return
-            self.last_click_time = now
+    def mouse_callback(self, event, x, y, flags, param):
+        """マウスイベントハンドラ"""
+        if event == cv2.EVENT_LBUTTONDOWN:
+            self.get_logger().info(f"Mouse clicked at ({x}, {y})")
+            # クリック位置を中心にROIを設定
+            half_width = self.roi_state['width'] // 2
+            half_height = self.roi_state['height'] // 2
             
-            roi = self.roi_state
-            roi['cx'] = x
-            roi['cy'] = y
-            half = roi['size'] // 2
-            roi['x1'] = max(0, x - half)
-            roi['y1'] = max(0, y - half)
-            roi['x2'] = x + half
-            roi['y2'] = y + half
-            roi['enabled'] = True
+            self.roi_state['cx'] = x
+            self.roi_state['cy'] = y
+            self.roi_state['x'] = max(0, x - half_width)
+            self.roi_state['y'] = max(0, y - half_height)
+            self.roi_state['enabled'] = True
             
-            self.get_logger().info(
-                f"[{self.camera_name}] ROI center=({roi['cx']},{roi['cy']}), size={roi['size']} "
-                f"-> ({roi['x1']},{roi['y1']})-({roi['x2']},{roi['y2']})"
-            )
+            self.get_logger().info(f"ROI set: center=({x}, {y}), "
+                                 f"region=({self.roi_state['x']}, {self.roi_state['y']}) - "
+                                 f"{self.roi_state['width']}x{self.roi_state['height']}")
 
-    def image_callback(self, msg: Image):
-        """Process incoming image and perform holistic estimation"""
-        try:
-            frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
-        except Exception as e:
-            self.get_logger().error(f'cv_bridge failed: {e}')
-            return
+    def extract_landmarks(self, results, image_width, image_height):
+        """ランドマークデータを抽出"""
+        
+        # Pose landmarks
+        pose_landmarks = []
+        if results.pose_landmarks:
+            for landmark in results.pose_landmarks.landmark:
+                pose_landmarks.extend([
+                    landmark.x * image_width,
+                    landmark.y * image_height,
+                    landmark.z,
+                    landmark.visibility
+                ])
+        
+        # Face landmarks
+        face_landmarks = []
+        if results.face_landmarks:
+            for landmark in results.face_landmarks.landmark:
+                face_landmarks.extend([
+                    landmark.x * image_width,
+                    landmark.y * image_height,
+                    landmark.z
+                ])
+        
+        # Left hand landmarks
+        left_hand_landmarks = []
+        if results.left_hand_landmarks:
+            for landmark in results.left_hand_landmarks.landmark:
+                left_hand_landmarks.extend([
+                    landmark.x * image_width,
+                    landmark.y * image_height,
+                    landmark.z
+                ])
+        
+        # Right hand landmarks
+        right_hand_landmarks = []
+        if results.right_hand_landmarks:
+            for landmark in results.right_hand_landmarks.landmark:
+                right_hand_landmarks.extend([
+                    landmark.x * image_width,
+                    landmark.y * image_height,
+                    landmark.z
+                ])
+        
+        return pose_landmarks, face_landmarks, left_hand_landmarks, right_hand_landmarks
 
-        h, w = frame.shape[:2]
-
-        # Apply ROI if enabled
-        if self.enable_roi and self.roi_state['enabled']:
-            half = self.roi_state['size'] // 2
-            cx = int(np.clip(self.roi_state['cx'], 0, w - 1))
-            cy = int(np.clip(self.roi_state['cy'], 0, h - 1))
-            x1 = max(0, cx - half)
-            y1 = max(0, cy - half)
-            x2 = min(w, cx + half)
-            y2 = min(h, cy + half)
-            self.roi_state.update({'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2})
-            roi_img = frame[y1:y2, x1:x2]
-        else:
-            x1 = y1 = 0
-            x2 = w
-            y2 = h
-            roi_img = frame
-
-        roi_w = x2 - x1
-        roi_h = y2 - y1
-
-        # MediaPipe Holistic processing
-        rgb = cv2.cvtColor(roi_img, cv2.COLOR_BGR2RGB)
-        rgb.flags.writeable = False
-        results = self.holistic.process(rgb)
-        rgb.flags.writeable = True
-        annotated_roi = roi_img.copy()
-
-        # Draw landmarks on ROI
+    def draw_landmarks(self, image, results):
+        """ランドマークを画像に描画"""
+        
+        # Draw pose landmarks
         if results.pose_landmarks:
             self.mp_drawing.draw_landmarks(
-                annotated_roi,
+                image,
                 results.pose_landmarks,
                 self.mp_holistic.POSE_CONNECTIONS,
-                landmark_drawing_spec=self.mp_styles.get_default_pose_landmarks_style()
+                landmark_drawing_spec=self.mp_drawing_styles.get_default_pose_landmarks_style()
             )
         
+        # Draw face landmarks
         if results.face_landmarks:
             self.mp_drawing.draw_landmarks(
-                annotated_roi,
+                image,
                 results.face_landmarks,
-                self.mp_holistic.FACEMESH_TESSELATION,
+                self.mp_holistic.FACEMESH_CONTOURS,
                 landmark_drawing_spec=None,
-                connection_drawing_spec=self.mp_styles.get_default_face_mesh_tesselation_style()
+                connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_contours_style()
             )
         
+        # Draw left hand landmarks
         if results.left_hand_landmarks:
             self.mp_drawing.draw_landmarks(
-                annotated_roi,
+                image,
                 results.left_hand_landmarks,
-                self.mp_holistic.HAND_CONNECTIONS
+                self.mp_holistic.HAND_CONNECTIONS,
+                landmark_drawing_spec=self.mp_drawing_styles.get_default_hand_landmarks_style(),
+                connection_drawing_spec=self.mp_drawing_styles.get_default_hand_connections_style()
             )
         
+        # Draw right hand landmarks
         if results.right_hand_landmarks:
             self.mp_drawing.draw_landmarks(
-                annotated_roi,
+                image,
                 results.right_hand_landmarks,
-                self.mp_holistic.HAND_CONNECTIONS
+                self.mp_holistic.HAND_CONNECTIONS,
+                landmark_drawing_spec=self.mp_drawing_styles.get_default_hand_landmarks_style(),
+                connection_drawing_spec=self.mp_drawing_styles.get_default_hand_connections_style()
             )
 
-        # Create full annotated image
-        annotated_full = frame.copy()
-        annotated_full[y1:y2, x1:x2] = annotated_roi
-
-        # OpenCV display
-        if self.opencv_available:
-            disp = annotated_full.copy()
-            if self.enable_roi and self.roi_state['enabled']:
-                cv2.rectangle(disp, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    def process_image(self, cv_image):
+        """MediaPipe Holisticで画像処理"""
+        height, width = cv_image.shape[:2]
+        
+        # ROI抽出
+        if self.roi_state['enabled']:
+            x1 = max(0, self.roi_state['x'])
+            y1 = max(0, self.roi_state['y'])
+            x2 = min(width, x1 + self.roi_state['width'])
+            y2 = min(height, y1 + self.roi_state['height'])
             
-            cv2.putText(disp, f'{self.camera_name}  q:close  +/-:resize  r:reset',
-                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (230, 230, 230), 1)
-            
-            win = self._window_name()
-            try:
-                cv2.imshow(win, disp)
-                key = cv2.waitKey(1) & 0xFF
-                
-                if key == ord('q'):
-                    cv2.destroyWindow(win)
-                    self.opencv_available = False
-                elif key in (ord('+'), ord('=')) and self.enable_roi:
-                    self.roi_state['size'] = min(self.roi_state['size'] + 40, max(w, h))
-                    self.get_logger().info(f"ROI size: {self.roi_state['size']}")
-                elif key == ord('-') and self.enable_roi:
-                    self.roi_state['size'] = max(self.roi_state['size'] - 40, 20)
-                    self.get_logger().info(f"ROI size: {self.roi_state['size']}")
-                elif key == ord('r') and self.enable_roi:
-                    self.roi_state['enabled'] = False
-                    self.get_logger().info("ROI reset")
-            except Exception:
-                self.opencv_available = False
+            processing_image = cv_image[y1:y2, x1:x2]
+            roi_width, roi_height = x2 - x1, y2 - y1
+        else:
+            processing_image = cv_image
+            roi_width, roi_height = width, height
+            x1 = y1 = 0
+        
+        # MediaPipe処理
+        image_rgb = cv2.cvtColor(processing_image, cv2.COLOR_BGR2RGB)
+        image_rgb.flags.writeable = False
+        
+        results = self.holistic.process(image_rgb)
+        
+        image_rgb.flags.writeable = True
+        annotated_roi = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+        
+        # ランドマーク描画（ROI内の画像に描画）
+        self.draw_landmarks(annotated_roi, results)
+        
+        # 元画像にROI部分を埋め込み
+        annotated_image = cv_image.copy()
+        if self.roi_state['enabled']:
+            annotated_image[y1:y1+roi_height, x1:x1+roi_width] = annotated_roi
+        else:
+            annotated_image = annotated_roi
+        
+        # ランドマークデータ抽出
+        pose_landmarks, face_landmarks, left_hand_landmarks, right_hand_landmarks = \
+            self.extract_landmarks(results, roi_width, roi_height)
+        
+        return annotated_image, pose_landmarks, face_landmarks, left_hand_landmarks, right_hand_landmarks
 
-        # Convert landmarks to global coordinates
-        def to_global(lmk):
-            gx = x1 + lmk.x * roi_w
-            gy = y1 + lmk.y * roi_h
-            return gx, gy, lmk.z
-
-        # Publish pose landmarks
-        pose_msg = Float32MultiArray()
-        if results.pose_landmarks:
-            buf = []
-            for l in results.pose_landmarks.landmark:
-                gx, gy, gz = to_global(l)
-                buf.extend([gx, gy, gz, l.visibility])
-            pose_msg.data = buf
-        self.pose_pub.publish(pose_msg)
-
-        # Publish face landmarks
-        face_msg = Float32MultiArray()
-        if results.face_landmarks:
-            buf = []
-            for l in results.face_landmarks.landmark:
-                gx, gy, gz = to_global(l)
-                buf.extend([gx, gy, gz])
-            face_msg.data = buf
-        self.face_pub.publish(face_msg)
-
-        # Publish left hand landmarks
-        left_msg = Float32MultiArray()
-        if results.left_hand_landmarks:
-            buf = []
-            for l in results.left_hand_landmarks.landmark:
-                gx, gy, gz = to_global(l)
-                buf.extend([gx, gy, gz])
-            left_msg.data = buf
-        self.left_hand_pub.publish(left_msg)
-
-        # Publish right hand landmarks
-        right_msg = Float32MultiArray()
-        if results.right_hand_landmarks:
-            buf = []
-            for l in results.right_hand_landmarks.landmark:
-                gx, gy, gz = to_global(l)
-                buf.extend([gx, gy, gz])
-            right_msg.data = buf
-        self.right_hand_pub.publish(right_msg)
-
-        # Publish annotated image
-        img_msg = self.bridge.cv2_to_imgmsg(annotated_full, 'bgr8')
-        img_msg.header = msg.header
-        self.annotated_pub.publish(img_msg)
-
-    def destroy_node(self):
-        """Clean up resources"""
+    def image_callback(self, msg):
+        """画像コールバック"""
         try:
-            self.holistic.close()
-        except Exception:
-            pass
-        if self.opencv_available:
-            cv2.destroyAllWindows()
-        super().destroy_node()
+            cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            
+            # MediaPipe処理
+            annotated_image, pose_landmarks, face_landmarks, left_hand_landmarks, right_hand_landmarks = \
+                self.process_image(cv_image)
+            
+            # アノテーション画像をパブリッシュ
+            annotated_msg = self.bridge.cv2_to_imgmsg(annotated_image, "bgr8")
+            annotated_msg.header = msg.header
+            self.annotated_image_pub.publish(annotated_msg)
+            
+            # ランドマークデータをパブリッシュ
+            pose_msg = Float32MultiArray()
+            pose_msg.data = pose_landmarks
+            self.pose_landmarks_pub.publish(pose_msg)
+            
+            face_msg = Float32MultiArray()
+            face_msg.data = face_landmarks
+            self.face_landmarks_pub.publish(face_msg)
+            
+            left_hand_msg = Float32MultiArray()
+            left_hand_msg.data = left_hand_landmarks
+            self.left_hand_landmarks_pub.publish(left_hand_msg)
+            
+            right_hand_msg = Float32MultiArray()
+            right_hand_msg.data = right_hand_landmarks
+            self.right_hand_landmarks_pub.publish(right_hand_msg)
+            
+            # OpenCV表示
+            if self.opencv_enabled:
+                try:
+                    display_image = annotated_image.copy()
+                    
+                    # ROI矩形を描画
+                    if self.roi_state['enabled']:
+                        x1 = max(0, self.roi_state['x'])
+                        y1 = max(0, self.roi_state['y'])
+                        x2 = min(cv_image.shape[1], x1 + self.roi_state['width'])
+                        y2 = min(cv_image.shape[0], y1 + self.roi_state['height'])
+                        
+                        cv2.rectangle(display_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                        cv2.putText(display_image, 'ROI', (x1, y1-10), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                    
+                    # 操作説明を追加
+                    cv2.putText(display_image, 'Click to set ROI center', 
+                               (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                    cv2.putText(display_image, 'Press: Q=quit, R=reset ROI, +/-=resize', 
+                               (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 1)
+                    
+                    cv2.imshow('Holistic Pose Estimator', display_image)
+                    
+                    # キー入力処理
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord('q'):
+                        self.get_logger().info("Closing OpenCV window")
+                        cv2.destroyAllWindows()
+                        self.opencv_enabled = False
+                    elif key == ord('r'):
+                        # ROIリセット
+                        self.roi_state['enabled'] = False
+                        self.get_logger().info("ROI reset")
+                    elif key in (ord('+'), ord('=')):
+                        # ROIサイズ増加
+                        self.roi_state['width'] = min(cv_image.shape[1], self.roi_state['width'] + 40)
+                        self.roi_state['height'] = min(cv_image.shape[0], self.roi_state['height'] + 40)
+                        self.get_logger().info(f"ROI size increased: {self.roi_state['width']}x{self.roi_state['height']}")
+                    elif key == ord('-'):
+                        # ROIサイズ減少
+                        self.roi_state['width'] = max(100, self.roi_state['width'] - 40)
+                        self.roi_state['height'] = max(100, self.roi_state['height'] - 40)
+                        self.get_logger().info(f"ROI size decreased: {self.roi_state['width']}x{self.roi_state['height']}")
+                        
+                except Exception as e:
+                    self.get_logger().debug(f"OpenCV display error: {str(e)}")
+            
+        except Exception as e:
+            self.get_logger().error(f'Error processing image: {str(e)}')
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = HolisticCamera01Node()
+    
+    node = HolisticPoseEstimatorNode()
+    
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
     finally:
+        if hasattr(node, 'opencv_enabled') and node.opencv_enabled:
+            cv2.destroyAllWindows()
         node.destroy_node()
         rclpy.shutdown()
 
