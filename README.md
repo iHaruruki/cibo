@@ -41,6 +41,10 @@ ros2 launch cibo cibo.launch.py
 ```bash
 ros2 run cibo image_show_node
 ```
+- Run chew count node
+```bash
+ros2 run cibo chew_counter_node
+```
 
 - rosbag
 画像を録画したい場合は、rosbagを利用
@@ -60,6 +64,24 @@ This command is mode that record all topic.
 
 ### top_camera_node  
 - **説明**: トップカメラ用の骨格推定ノード。ポーズと手の検出に特化
+
+### chew_counter_node
+- **説明**: 咀嚼回数をカウントする
+計算方法  
+
+MAR（Mouth Aspect Ratio）は以下の4点のランドマーク座標を使用して計算されます。  
+
+| ランドマーク名 | MediaPipe Index | 説明 |
+|----------------|------------------|------|
+| 左口角 | 61 | 口の左端 |
+| 右口角 | 291 | 口の右端 |
+| 上唇中央 | 13 | 上唇の内側中央 |
+| 下唇中央 | 14 | 下唇の内側中央 |
+
+式：
+\[
+\text{MAR} = \frac{\text{距離(上唇-下唇)}}{\text{距離(左口角-右口角)}}
+\]
 
 ## Topic List
 
@@ -93,6 +115,18 @@ This command is mode that record all topic.
 | `/top_camera/pose_landmarks` | `std_msgs/Float32MultiArray` | ポーズランドマーク座標（x,y,z） |
 | `/top_camera/left_hand_landmarks` | `std_msgs/Float32MultiArray` | 左手ランドマーク座標（x,y,z） |
 | `/top_camera/right_hand_landmarks` | `std_msgs/Float32MultiArray` | 右手ランドマーク座標（x,y,z） |
+
+### chew_counter_node
+#### Subscribed Topics
+| Topic名 | メッセージ型 | 説明 |
+|---------|-------------|------|
+| `/front_camera/face_landmarks` | `std_msgs/Float32MultiArray` | 顔ランドマーク座標（Face Meshモデル、最大478ポイント、虹彩含む） |
+
+#### Published Topics
+| Topic名 | メッセージ型 | 説明 |
+|---------|-------------|------|
+| `/chewing/count` | `std_msgs/Int32` | 咀嚼の累積回数 |
+| `/chewing/mar` | `std_msgs/Float32` | 平滑化後MAR |
 
 ## Parameter一覧
 
