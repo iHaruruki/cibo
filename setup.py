@@ -23,13 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'body_face_node = cibo.body_face:main',
-            'hand_node = cibo.hand:main',
-            'camera_calibration_node = cibo.camera_calibration:main',
-            'body_face_hand_node = cibo.body_face_hand:main',
-            'calibration_tester = cibo.calibration_tester:main',
-            'holistic_camera_01_node = cibo.camera1_node:main',
-            'holistic_camera_02_node = cibo.camera2_node:main',
+            'top_camera_node = cibo.top_camera:main',
+            'front_camera_node = cibo.front_camera:main',
         ],
     },
 )
