@@ -67,6 +67,7 @@ This command is mode that record all topic.
 
 ### chew_counter_node
 - **説明**: 咀嚼回数をカウントする
+
 計算方法  
 
 MAR（Mouth Aspect Ratio）は以下の4点のランドマーク座標を使用して計算されます。  
@@ -79,9 +80,10 @@ MAR（Mouth Aspect Ratio）は以下の4点のランドマーク座標を使用�
 | 下唇中央 | 14 | 下唇の内側中央 |
 
 式：
-\[
-\text{MAR} = \frac{\text{距離(上唇-下唇)}}{\text{距離(左口角-右口角)}}
-\]
+$ MAR = \frac{vertical distance (upper–lower lip)}{horizontal distance (left–right corner)} $
+
+MediaPipe Face Mesh の代表点で書くと：
+$ MAR = \frac{|P_{13} - P_{14}|}{|P_{61} - P_{291}|} $
 
 ## Topic List
 
