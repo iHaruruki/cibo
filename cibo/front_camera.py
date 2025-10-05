@@ -293,10 +293,10 @@ class FrontCameraNode(Node):
                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
             
             # Add instructions
-            cv2.putText(display_image, 'Drag to select ROI, Press R to reset, Q to quit', 
-                       (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+            cv2.putText(display_image, 'Drag to select ROI', 
+                       (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             cv2.putText(display_image, f'Face landmarks: {len(face_landmarks)//3} points', 
-                       (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                       (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
             
             cv2.imshow('Front Camera - ROI Selection', display_image)
             
