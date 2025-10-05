@@ -33,8 +33,8 @@ class ChewingFromLandmarksAdaptive(Node):
         self.declare_parameter('ema_alpha', 0.1)          # MARの指数平滑
         self.declare_parameter('use_adaptive', False)       # True: 自己適応しきい値 / False: 固定値
         # 固定しきい値（このログに合う推奨値）
-        self.declare_parameter('mar_high', 0.01)
-        self.declare_parameter('mar_low',  0.007)
+        self.declare_parameter('mar_high', 0.008)
+        self.declare_parameter('mar_low',  0.005)
 
         # 自己適応の窓とゲイン
         self.declare_parameter('window_sec', 3.0)          # 移動窓（秒）
