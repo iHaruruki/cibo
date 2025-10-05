@@ -26,6 +26,7 @@ setup(
             'top_camera_node = cibo.top_camera:main',
             'front_camera_node = cibo.front_camera:main',
             'chew_counter_node = cibo.chew_counter:main',
+            'image_show_node = cibo.image_show:main',
         ],
     },
 )
