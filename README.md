@@ -37,8 +37,17 @@ ros2 launch cibo cibo.launch.py
 2. マウスをドラッグして長方形のROIを選択します
 3. ドラッグ中は青い矩形が表示され、確定後は緑の矩形で表示されます
 
+- 出力画像を見る(OpenCV Image Show) 
+```bash
+ros2 run cibo image_show_node
+```
+
 - rosbag
-If you want to record images, use rosbag.
+画像を録画したい場合は、rosbagを利用
+```bash
+cd ~/ros2_ws/rosbag
+# もし作成して場合は mkdir -p rosbag
+```
 ```bash
 ros2 bag record -a
 ```
