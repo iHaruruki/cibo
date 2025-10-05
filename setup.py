@@ -28,6 +28,8 @@ setup(
             'camera_calibration_node = cibo.camera_calibration:main',
             'body_face_hand_node = cibo.body_face_hand:main',
             'calibration_tester = cibo.calibration_tester:main',
+            'holistic_camera_01_node = cibo.camera1_node:main',
+            'holistic_camera_02_node = cibo.camera2_node:main',
         ],
     },
 )
