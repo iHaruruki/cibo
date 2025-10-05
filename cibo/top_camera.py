@@ -239,8 +239,8 @@ class TopCameraNode(Node):
                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
             
             # Add instructions
-            cv2.putText(display_image, 'Drag to select ROI, Press R to reset, Q to quit', 
-                       (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+            cv2.putText(display_image, 'Drag to select ROI', 
+                       (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             
             cv2.imshow('Top Camera - ROI Selection', display_image)
             
