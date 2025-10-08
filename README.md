@@ -35,19 +35,19 @@ ros2 launch cibo cibo.launch.py
 - ROI選択方法
 1. ノード起動後、OpenCVウィンドウが表示されます
 2. マウスをドラッグして長方形のROIを選択します
-3. ドラッグ中は青い矩形が表示され、確定後は緑の矩形で表示されます
+3. ドラッグ中は青い矩形が表示され，確定後は緑の矩形で表示されます
 
 - 出力画像を見る(OpenCV Image Show) 
 ```bash
 ros2 run cibo image_show_node
 ```
-- Run chew count node / 咀嚼回数
+- Run chew count node / 咀嚼回数をカウントするNode
 ```bash
 ros2 run cibo chew_counter_node
 ```
 
 - rosbag
-画像を録画したい場合は、rosbagを利用
+画像を録画したい場合は，rosbagを利用
 ```bash
 cd ~/ros2_ws/rosbag
 # もし作成して場合は mkdir -p rosbag
@@ -60,10 +60,10 @@ This command is mode that record all topic.
 ## Node List
 
 ### front_camera_node
-- **説明**: フロントカメラ用の骨格推定ノード。Face Meshモデルによる詳細な顔解析（虹彩検出含む）を実行
+- **説明**: フロントカメラ用の骨格推定ノード.Face Meshモデルによる詳細な顔解析を実行
 
 ### top_camera_node  
-- **説明**: トップカメラ用の骨格推定ノード。ポーズと手の検出に特化
+- **説明**: トップカメラ用の骨格推定ノード.ポーズと手の検出に特化
 
 ### chew_counter_node
 - **説明**: 咀嚼回数をカウントする
