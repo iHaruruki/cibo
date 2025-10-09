@@ -31,6 +31,7 @@ cd ~/ros2_ws/src/cibo
 ```bash
 git fetch
 git switch main
+git pull origin main
 ```
 - Build
 ```bash
@@ -48,7 +49,8 @@ ros2 launch cibo rviz.launch.py
 ```
 rviz2の画面に`Top`&`Front`カメラの画像が表示されれば接続成功！
 > [!TIP]
-> カメラの接続に失敗した場合
+> カメラの接続に失敗した場合  
+> `usb_port`を確認し，`OrbbecSDK_ROS2/launch/multi_camera.launch.py`書き換える  
 > [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera)
 
 - cibo.launch.py (骨格推定を行うNodeを起動)
