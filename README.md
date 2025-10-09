@@ -1,5 +1,5 @@
 # cibo
-## Setup
+## 🛠️ Setup
 1. Setup camera
 Please follow link
 [OrbbecSDK_ROS2](https://github.com/iHaruruki/OrbbecSDK_ROS2.git)
@@ -23,7 +23,7 @@ $ colcon build --symlink-install --packages-select cibo
 $ source install/setup.bash
 ```
 
-## How to use
+## 🎮 How to use
 - GitHubを更新している可能性があるので，ローカルリポジトリとリモートリポジトリを同期させる
 ```bash
 cd ~/ros2_ws/src/cibo
@@ -89,7 +89,7 @@ ros2 bag record -a
 
 This command is mode that record all topic.
 
-## Node List
+## 🚀 Node List
 
 ### front_camera_node
 - **説明**: フロントカメラ用の骨格推定ノード.Face Meshモデルによる詳細な顔解析を実行
@@ -121,7 +121,7 @@ MediaPipe Face Mesh の代表点で書くと：
 $$ MAR = \frac{|P_{13} - P_{14}|}{|P_{61} - P_{291}|} $$
 ```
 
-## Topic List
+## 🧩 Topic List
 
 ### front_camera_node
 
@@ -166,7 +166,7 @@ $$ MAR = \frac{|P_{13} - P_{14}|}{|P_{61} - P_{291}|} $$
 | `/chewing/count` | `std_msgs/Int32` | 咀嚼の累積回数 |
 | `/chewing/mar` | `std_msgs/Float32` | 平滑化後MAR |
 
-## Parameter一覧
+## 📦 Parameter List
 
 ### front_camera_node
 
@@ -194,5 +194,9 @@ $$ MAR = \frac{|P_{13} - P_{14}|}{|P_{61} - P_{291}|} $$
 | `min_detection_confidence` | double | 0.5 | 検出の最小信頼度 |
 | `min_tracking_confidence` | double | 0.5 | 追跡の最小信頼度 |
 
-## Ref
+## 👤 Authors
+
+- **[iHaruruki](https://github.com/iHaruruki)** — Main author & maintainer
+
+## 📚 Reference
 [MediaPipe](https://chuoling.github.io/mediapipe/)
