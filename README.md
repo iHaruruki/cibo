@@ -78,14 +78,14 @@ ros2 run cibo chew_counter_node
 画像を録画したい場合は，rosbagを利用
 ```bash
 cd ~/ros2_ws/rosbag
-# もし作成して場合は mkdir -p rosbag
+# もし作成して場合は mkdir -p ~/ros2_ws/rosbag
 ```
-Recorde add topic
+Recorde all topic
 ```bash
 ros2 bag record -a
 ```
 > [!WARNING]
-> `30GB/分` のデータを保存するため，ストレージの空き容量に注意！
+> `30 GB/分` のデータを保存するため，ストレージの空き容量に注意！
 
 This command is mode that record all topic.
 
