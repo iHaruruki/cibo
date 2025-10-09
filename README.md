@@ -28,11 +28,15 @@ $ source install/setup.bash
 ```bash
 ros2 launch orbbec_camera multi_camera.launch.py
 ```
+- カメラの接続を確認する
+```bash
+
+```
 - cibo.launch.py (front_camera_node & top_camera_node)
 ```bash
 ros2 launch cibo cibo.launch.py
 ```
-- ROI選択方法
+- ROI選択方法（骨格推定を行う範囲を指定する）
 1. ノード起動後、OpenCVウィンドウが表示されます
 2. マウスをドラッグして長方形のROIを選択します
 3. ドラッグ中は青い矩形が表示され，確定後は緑の矩形で表示されます
@@ -45,6 +49,8 @@ ros2 run cibo image_show_node
 ```bash
 ros2 run cibo chew_counter_node
 ```
+> [!!WARNING]
+> 調整中のため，正常に動作しない可能性があります．
 
 - rosbag
 画像を録画したい場合は，rosbagを利用
