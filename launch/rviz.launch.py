@@ -7,6 +7,6 @@ def generate_launch_description():
         executable='rviz2',
         name='rviz2',
         arguments=[
-            '-d', './cibo_camera.rviz'])
+            '-d', './rviz/cibo_camera.rviz'])
 
     return LaunchDescription([node])
