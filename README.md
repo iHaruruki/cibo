@@ -47,7 +47,7 @@ ros2 launch orbbec_camera multi_camera.launch.py
 ```bash
 ros2 launch cibo rviz.launch.py
 ```
-rviz2の画面に`Top`&`Front`カメラの画像が表示されれば接続成功！
+rviz2の画面に`Top`&`Front`カメラの画像が表示されたら接続成功！
 > [!TIP]
 > カメラの接続に失敗した場合  
 > `usb_port`を確認し，`OrbbecSDK_ROS2/launch/multi_camera.launch.py`書き換える  
@@ -70,7 +70,7 @@ ros2 run cibo image_show_node
 ```bash
 ros2 run cibo chew_counter_node
 ```
-> [!!WARNING]
+> [!WARNING]
 > `ros2 run cibo chew_counter_node`  
 > 調整中のため，正常に動作しない可能性があります．
 
@@ -84,8 +84,8 @@ Recorde add topic
 ```bash
 ros2 bag record -a
 ```
-> [!!WARNING]
-> 30GB/分 のデータを保存するため，ストレージの空き容量に注意！
+> [!WARNING]
+> `30GB/分` のデータを保存するため，ストレージの空き容量に注意！
 
 This command is mode that record all topic.
 
