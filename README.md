@@ -24,15 +24,34 @@ $ source install/setup.bash
 ```
 
 ## How to use
+- GitHubを更新している可能性があるので，ローカルリポジトリとリモートリポジトリを同期させる
+```bash
+cd ~/ros2_ws/src/cibo
+```
+```bash
+git fetch
+git switch main
+```
+- Build
+```bash
+cd ~/ros2_ws
+colcon build --symlink-install --packages-select cibo
+source install/setup.bash
+```
 - Run camera
 ```bash
 ros2 launch orbbec_camera multi_camera.launch.py
 ```
 - カメラの接続を確認する
 ```bash
-
+ros2 launch cibo rviz.launch.py
 ```
-- cibo.launch.py (front_camera_node & top_camera_node)
+rviz2の画面に`Top`&`Front`カメラの画像が表示されれば接続成功！
+> [!TIP]
+> カメラの接続に失敗した場合
+> [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera)
+
+- cibo.launch.py (骨格推定を行うNodeを起動)
 ```bash
 ros2 launch cibo cibo.launch.py
 ```
@@ -50,6 +69,7 @@ ros2 run cibo image_show_node
 ros2 run cibo chew_counter_node
 ```
 > [!!WARNING]
+> `ros2 run cibo chew_counter_node`  
 > 調整中のため，正常に動作しない可能性があります．
 
 - rosbag
@@ -58,9 +78,13 @@ ros2 run cibo chew_counter_node
 cd ~/ros2_ws/rosbag
 # もし作成して場合は mkdir -p rosbag
 ```
+Recorde add topic
 ```bash
 ros2 bag record -a
 ```
+> [!!WARNING]
+> 30GB/分 のデータを保存するため，ストレージの空き容量に注意！
+
 This command is mode that record all topic.
 
 ## Node List
