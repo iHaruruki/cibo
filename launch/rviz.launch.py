@@ -4,6 +4,7 @@ from launch_ros.actions import Node
 import os
 
 def generate_launch_description():
+    
     rviz_config_dir = os.path.join(
         get_package_share_directory('cibo'),
         'rviz', 'cibo_camera.rviz'
