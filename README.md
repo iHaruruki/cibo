@@ -5,12 +5,15 @@ Please follow link
 [OrbbecSDK_ROS2](https://github.com/iHaruruki/OrbbecSDK_ROS2.git)
 
 2. Setup python environment
-Install pyrhon packages
+Install python packages
 ```bash
 pip3 install -U "numpy==1.26.4" "opencv-python==4.10.0.84"
 pip3 install opencv-python mediapipe
 ```
-
+Install ros packages
+```bash
+sudo apt install ros-humble-message-filters
+```
 3. Setup cibo Repositories
 ```bash
 $ cd ~/ros2_ws/src
