@@ -56,6 +56,8 @@ rviz2の画面に`Top`&`Front`カメラの画像が表示されたら接続成�
 > [!TIP]
 > カメラの接続に失敗した場合  
 > [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera)
+
+
 To get the usb_port of the camera, plug in the camera and run the following command in the terminal:
 ```bash
 ros2 run orbbec_camera list_devices_node
@@ -110,7 +112,6 @@ def generate_launch_description():
     )
 ***
 ```
-> 
 
 
 ### cibo起動
