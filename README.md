@@ -27,6 +27,7 @@ $ source install/setup.bash
 ```
 
 ## 🎮 How to use
+### GitHubと同期
 - GitHubを更新している可能性があるので，ローカルリポジトリとリモートリポジトリを同期させる
 ```bash
 cd ~/ros2_ws/src/cibo
@@ -36,13 +37,13 @@ git fetch
 git switch main
 git pull origin main
 ```
-- Build
+### Build
 ```bash
 cd ~/ros2_ws
 colcon build --symlink-install --packages-select cibo
 source install/setup.bash
 ```
-- Run camera
+### Run camera
 ```bash
 ros2 launch orbbec_camera multi_camera.launch.py
 ```
@@ -110,7 +111,7 @@ def generate_launch_description():
 ***
 ```
 
-- cibo.launch.py (骨格推定を行うNodeを起動)
+### cibo起動
 ```bash
 ros2 launch cibo cibo_depth.launch.py
 ```
@@ -119,11 +120,11 @@ ros2 launch cibo cibo_depth.launch.py
 2. マウスをドラッグして長方形のROIを選択します
 3. ドラッグ中は青い矩形が表示され，確定後は緑の矩形で表示されます
 
-- 出力画像を見る(OpenCV Image Show) 
+### 出力画像を見る(OpenCV Image Show) 
 ```bash
 ros2 run cibo image_show_node
 ```
-- Run chew count node / 咀嚼回数をカウントするNode
+### Run chewing count node / 咀嚼回数をカウントするNode
 ```bash
 ros2 run cibo chew_counter_node
 ```
@@ -131,7 +132,7 @@ ros2 run cibo chew_counter_node
 > `ros2 run cibo chew_counter_node`  
 > 調整中のため，正常に動作しない可能性があります．
 
-- rosbag
+### rosbag
 画像を録画したい場合は，rosbagを利用
 ```bash
 cd ~/ros2_ws/rosbag
@@ -140,11 +141,18 @@ cd ~/ros2_ws/rosbag
 Recorde all topic
 ```bash
 ros2 bag record -a
+# This command is mode that record all topic.
 ```
+Save only specific topics
+```bash
+# ros2 bag record --topics <topic_name_1> <topic_name_2> <topic_name_3>
+ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /camera_02/color/image_raw /camera_02/depth/image_raw
+```
+Recorde 
 > [!WARNING]
 > データサイズが大きいため，ストレージの空き容量に注意！
 
-This command is mode that record all topic.
+
 
 ## 🚀 Node List
 
