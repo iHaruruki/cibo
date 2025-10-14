@@ -170,9 +170,12 @@ class TopCameraNode(Node):
                 t.header.stamp = color_msg.header.stamp
                 t.header.frame_id = self.camera_frame
                 t.child_frame_id = f'{prefix}_{i}'
-                t.transform.translation.x = float(X)
-                t.transform.translation.y = float(Y)
-                t.transform.translation.z = float(z)
+                lx = float(z)
+                ly = -float(X)
+                lz = -float(Y)
+                t.transform.translation.x = float(lx)
+                t.transform.translation.y = float(ly)
+                t.transform.translation.z = float(lz)
                 t.transform.rotation.x = 0.0
                 t.transform.rotation.y = 0.0
                 t.transform.rotation.z = 0.0
