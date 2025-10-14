@@ -54,10 +54,12 @@ ros2 launch orbbec_camera multi_camera.launch.py
 ```bash
 ros2 launch cibo rviz.launch.py
 ```
-rviz2の画面に`Top`&`Front`カメラの画像が表示されたら接続成功！
+rviz2の画像を確認
+- `Front_camra`ウィンドウにFront-Camera映像が出力されているか
+- `Top_camera`ウィンドウにTop-Camera映像が出力されているか
 
 > [!TIP]
-> カメラの接続に失敗した場合  
+> カメラの接続に失敗した場合 & Front-Camera/Top-Cameraの位置関係が逆の場合
 > [Multi-Camera](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file#multi-camera)
 > Please follow bellow
 
@@ -103,7 +105,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             'camera_name': 'camera_01',
-            'usb_port': '2-3.2',    # replace your usb port here
+            'usb_port': '2-3.2',    # replace your front camera usb port here
             'device_num': '2',
             'sync_mode': 'standalone'
         }.items()
@@ -115,7 +117,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             'camera_name': 'camera_02',
-            'usb_port': '2-4.2',    # replace your usb port here
+            'usb_port': '2-4.2',    # replace your top camera usb port here
             'device_num': '2',
             'sync_mode': 'standalone'
         }.items()
