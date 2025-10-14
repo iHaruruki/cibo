@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'top_camera_node = cibo.top_camera:main',
+            'top_camera_depth_node = cibo.top_camera_depth:main',
             'front_camera_node = cibo.front_camera:main',
             'front_camera_depth_node = cibo.front_camera_depth:main',
             'chew_counter_node = cibo.chew_counter:main',
