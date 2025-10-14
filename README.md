@@ -5,7 +5,7 @@ Please follow link
 [OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file)
 > [!IMPORTANT]
 > branch: `main`  
-> デフォルトの`v2-main`は使用しないで、`main` branchを使用する  
+> デフォルトの`v2-main`は使用しないで，`main` branchを使用する  
 > 2025.10.14
 
 2. Setup python environment
