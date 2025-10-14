@@ -53,8 +53,8 @@ ros2 launch cibo rviz.launch.py
 rviz2の画面に`Top`&`Front`カメラの画像が表示されたら接続成功！
 > [!TIP]
 > カメラの接続に失敗した場合  
-> [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera) 
-`usb_port`を確認する  
+> [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera)
+
 To get the usb_port of the camera, plug in the camera and run the following command in the terminal:
 ```bash
 ros2 run orbbec_camera list_devices_node
@@ -76,7 +76,7 @@ ros2 run orbbec_camera list_devices_node
 [INFO] [1760437365.379831358] [list_device_node]: serial: AY2T1120232
 [INFO] [1760437365.379842742] [list_device_node]: usb port: 6-1.2.2 # Check
 ```
-`ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/launch/multi_camera.launch.py`書き換える  
+`ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/launch/multi_camera.launch.py`を書き換える  
 ```python
 `multi_camera.launch.py`
 ***
@@ -90,7 +90,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             'camera_name': 'camera_01',
-            'usb_port': '2-1.1', # front_cameraのusb_port
+            'usb_port': '2-1.1', # front_camera usb_port
             'device_num': '2',
             'sync_mode': 'standalone'
         }.items()
@@ -102,7 +102,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             'camera_name': 'camera_02',
-            'usb_port': '2-1.2.1', # top_cameraのusb_port
+            'usb_port': '2-1.2.1', # top_camera usb_port
             'device_num': '2',
             'sync_mode': 'standalone'
         }.items()
