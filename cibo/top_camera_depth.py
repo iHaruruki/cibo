@@ -27,7 +27,7 @@ class TopCameraNode(Node):
         self.mp_drawing_styles = mp.solutions.drawing_styles
         self.mp_holistic = mp.solutions.holistic
         self.holistic = self.mp_holistic.Holistic(
-            min_detection_confidence=self.declare_parameter('min_detection_confidence', 0.5).value,
+            min_detection_confidence=self.declare_parameter('min_detection_confidence', 0.4).value,
             min_tracking_confidence=self.declare_parameter('min_tracking_confidence', 0.5).value
         )
 
