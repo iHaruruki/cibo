@@ -28,7 +28,7 @@ $ source install/setup.bash
 
 ## 🎮 How to use
 ### GitHubと同期
-- GitHubを更新している可能性があるので，ローカルリポジトリとリモートリポジトリを同期させる
+GitHubを更新している可能性があるので，ローカルリポジトリとリモートリポジトリを同期させる
 ```bash
 cd ~/ros2_ws/src/cibo
 ```
@@ -52,6 +52,7 @@ ros2 launch orbbec_camera multi_camera.launch.py
 ros2 launch cibo rviz.launch.py
 ```
 rviz2の画面に`Top`&`Front`カメラの画像が表示されたら接続成功！
+
 > [!TIP]
 > カメラの接続に失敗した場合  
 > [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera)
@@ -110,6 +111,7 @@ def generate_launch_description():
     )
 ***
 ```
+> 
 
 ### cibo起動
 ```bash
