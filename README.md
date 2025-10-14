@@ -54,7 +54,36 @@ rviz2の画面に`Top`&`Front`カメラの画像が表示されたら接続成�
 > [!TIP]
 > カメラの接続に失敗した場合  
 > [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera)
-> `usb_port`を確認し，`ros2_ws/src/OrbbecSDK_ROS2/launch/multi_camera.launch.py`書き換える  
+> `usb_port`を確認し，`ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/launch/multi_camera.launch.py`書き換える  
+> ```bash
+    def generate_launch_description():
+        # Include launch files
+        package_dir = get_package_share_directory('orbbec_camera')
+        launch_file_dir = os.path.join(package_dir, 'launch')
+        launch1_include = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(launch_file_dir, 'gemini_330_series.launch.py')
+            ),
+            launch_arguments={
+                'camera_name': 'camera_01',
+                'usb_port': '2-1.1',
+                'device_num': '2',
+                'sync_mode': 'standalone'
+            }.items()
+        )
+
+        launch2_include = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(launch_file_dir, 'gemini_330_series.launch.py')
+            ),
+            launch_arguments={
+                'camera_name': 'camera_02',
+                'usb_port': '2-1.2.1',
+                'device_num': '2',
+                'sync_mode': 'standalone'
+            }.items()
+        )
+> ```
 
 - cibo.launch.py (骨格推定を行うNodeを起動)
 ```bash
