@@ -42,7 +42,7 @@ class TopCameraNode(Node):
         self.color_topic = self.declare_parameter('color_topic', '/camera_02/color/image_raw').value
         self.depth_topic = self.declare_parameter('depth_topic', '/camera_02/depth/image_raw').value
         self.depth_info_topic = self.declare_parameter('depth_info_topic', '/camera_02/depth/camera_info').value
-        self.camera_frame = self.declare_parameter('camera_frame', 'camera_02_depth_optical_frame').value
+        self.camera_frame = self.declare_parameter('camera_frame', 'camera_02_link').value
         self.tf_rate_hz = float(self.declare_parameter('tf_rate_hz', 20.0).value)
 
         # === GUI state ===

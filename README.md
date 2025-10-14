@@ -4,7 +4,8 @@
 Please follow link
 [OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file)
 > [!IMPORTANT]
-> branch: `main`
+> branch: `main`  
+> デフォルトの`v2-main`は使用しないで、`main` branchを使用する  
 > 2025.10.14
 
 2. Setup python environment
@@ -59,8 +60,8 @@ rviz2の画像を確認
 - `Top_camera`ウィンドウにTop-Camera映像が出力されているか
 
 > [!TIP]
-> カメラの接続に失敗した場合 & Front-Camera/Top-Cameraの位置関係が逆の場合
-> [Multi-Camera](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file#multi-camera)
+> カメラの接続に失敗した場合 & Front-Camera/Top-Cameraの位置関係が逆の場合  
+> [Multi-Camera](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file#multi-camera)  
 > Please follow bellow
 
 To get the usb_port of the camera, plug in the camera and run the following command in the terminal:
