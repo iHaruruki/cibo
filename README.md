@@ -93,7 +93,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             'camera_name': 'camera_01',
-            'usb_port': '2-1.1', # front_camera usb_port
+            'usb_port': '6-1.1.2', # front_camera usb_port
             'device_num': '2',
             'sync_mode': 'standalone'
         }.items()
@@ -105,7 +105,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             'camera_name': 'camera_02',
-            'usb_port': '2-1.2.1', # top_camera usb_port
+            'usb_port': '6-1.2.2', # top_camera usb_port
             'device_num': '2',
             'sync_mode': 'standalone'
         }.items()
