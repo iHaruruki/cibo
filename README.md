@@ -53,12 +53,12 @@ ros2 launch cibo rviz.launch.py
 rviz2の画面に`Top`&`Front`カメラの画像が表示されたら接続成功！
 > [!TIP]
 > カメラの接続に失敗した場合  
-> `usb_port`を確認し，`OrbbecSDK_ROS2/launch/multi_camera.launch.py`書き換える  
 > [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera)
+> `usb_port`を確認し，`ros2_ws/src/OrbbecSDK_ROS2/launch/multi_camera.launch.py`書き換える  
 
 - cibo.launch.py (骨格推定を行うNodeを起動)
 ```bash
-ros2 launch cibo cibo.launch.py
+ros2 launch cibo cibo_depth.launch.py
 ```
 - ROI選択方法（骨格推定を行う範囲を指定する）
 1. ノード起動後、OpenCVウィンドウが表示されます
@@ -88,7 +88,7 @@ Recorde all topic
 ros2 bag record -a
 ```
 > [!WARNING]
-> `30 GB/分` のデータを保存するため，ストレージの空き容量に注意！
+> データサイズが大きいため，ストレージの空き容量に注意！
 
 This command is mode that record all topic.
 
