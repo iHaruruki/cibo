@@ -53,8 +53,62 @@ ros2 launch cibo rviz.launch.py
 rviz2の画面に`Top`&`Front`カメラの画像が表示されたら接続成功！
 > [!TIP]
 > カメラの接続に失敗した場合  
-> [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera)
-> `usb_port`を確認し，`ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/launch/multi_camera.launch.py`書き換える  
+> [Multi-Camera](https://github.com/iHaruruki/OrbbecSDK_ROS2?tab=readme-ov-file#multi-camera) 
+`usb_port`を確認する  
+To get the usb_port of the camera, plug in the camera and run the following command in the terminal:
+```bash
+ros2 run orbbec_camera list_devices_node
+```
+Result
+```bash
+ros2 run orbbec_camera list_devices_node 
+[10/14 19:22:44.942823][info][29184][Context.cpp:68] Context created with config: default config!
+[10/14 19:22:44.942840][info][29184][Context.cpp:73] Work directory=/home/######/ros2_ws, SDK version=v1.10.22-20250410-46139de
+[10/14 19:22:44.942861][info][29184][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[10/14 19:22:45.314979][warning][29184][OpenNIDeviceInfo.cpp:186] New openni device matched.
+[10/14 19:22:45.315007][warning][29184][OpenNIDeviceInfo.cpp:186] New openni device matched.
+[10/14 19:22:45.315468][info][29184][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[10/14 19:22:45.315525][info][29184][DeviceManager.cpp:15] Current found device(s): (2)
+[10/14 19:22:45.315540][info][29184][DeviceManager.cpp:24] 	- Name: SV1301S_U3, PID: 0x0614, SN/ID: , Connection: USB3.0
+[10/14 19:22:45.315553][info][29184][DeviceManager.cpp:24] 	- Name: SV1301S_U3, PID: 0x0614, SN/ID: , Connection: USB3.0
+[INFO] [1760437365.352983950] [list_device_node]: serial: AY2T1120132
+[INFO] [1760437365.353010630] [list_device_node]: usb port: 6-1.1.2 # Check
+[INFO] [1760437365.379831358] [list_device_node]: serial: AY2T1120232
+[INFO] [1760437365.379842742] [list_device_node]: usb port: 6-1.2.2 # Check
+```
+`ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/launch/multi_camera.launch.py`書き換える  
+```python
+`multi_camera.launch.py`
+***
+def generate_launch_description():
+    # Include launch files
+    package_dir = get_package_share_directory('orbbec_camera')
+    launch_file_dir = os.path.join(package_dir, 'launch')
+    launch1_include = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(launch_file_dir, 'gemini_330_series.launch.py')
+        ),
+        launch_arguments={
+            'camera_name': 'camera_01',
+            'usb_port': '2-1.1', # front_cameraのusb_port
+            'device_num': '2',
+            'sync_mode': 'standalone'
+        }.items()
+    )
+
+    launch2_include = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(launch_file_dir, 'gemini_330_series.launch.py')
+        ),
+        launch_arguments={
+            'camera_name': 'camera_02',
+            'usb_port': '2-1.2.1', # top_cameraのusb_port
+            'device_num': '2',
+            'sync_mode': 'standalone'
+        }.items()
+    )
+***
+```
 
 - cibo.launch.py (骨格推定を行うNodeを起動)
 ```bash
