@@ -6,15 +6,17 @@
 - Estimating a person's state during meals.
 
 ## 🛠️ Setup
-### Setup camera
-Please follow link
+### Setup Camera ([Astra Stereo S U3](https://store.orbbec.com/products/astra-stereo-s-u3?srsltid=AfmBOop-7Cnl_FU8fo6iytP43uBmOZTonKg5eosq_w3jRvFCeXtigKCG))
+
+Please follow link  
 [OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file)
 > [!IMPORTANT]
 > branch: `main`  
+> Use the `main` branch instead of the default `v2-main`
 > デフォルトの`v2-main`は使用しないで，`main` branchを使用する  
 > 2025.10.14
 
-### Setup python environment
+### Installing dependent packages
 Install python packages
 ```bash
 pip3 install -U "numpy==1.26.4" "opencv-python==4.10.0.84"
@@ -40,7 +42,8 @@ $ source install/setup.bash
 
 ## 🎮 How to use
 ### GitHubと同期
-GitHubを更新している可能性があるので，ローカルリポジトリとリモートリポジトリを同期させる
+Synchronize your local repository with the remote repository.  
+GitHubを更新している可能性があるので，ローカルリポジトリとリモートリポジトリを同期させる．
 ```bash
 cd ~/ros2_ws/src/cibo
 ```
@@ -59,18 +62,20 @@ source install/setup.bash
 ```bash
 ros2 launch orbbec_camera multi_camera.launch.py
 ```
-- カメラの接続を確認する
+- Check the camera connection. / カメラの接続を確認する．
 ```bash
 ros2 launch cibo rviz.launch.py
 ```
-rviz2の画像を確認
-- `Front_camra`ウィンドウにFront-Camera映像が出力されているか
-- `Top_camera`ウィンドウにTop-Camera映像が出力されているか
+View images on rviz2 / rviz2上で画像を確認  
+
+- Is the Front-Camera video being output to the `Front_camra` window? / `Front_camra`ウィンドウにFront-Camera映像が出力されているか
+- Is the Top-Camera video being output to the `Top_camera` window? / `Top_camera`ウィンドウにTop-Camera映像が出力されているか
 
 > [!TIP]
+> When the camera connection fails and the Front-Camera/Top-Camera positions are reversed.
 > カメラの接続に失敗した場合 & Front-Camera/Top-Cameraの位置関係が逆の場合  
 > [Multi-Camera](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file#multi-camera)  
-> Please follow bellow
+> Please follow bellow.
 
 To get the usb_port of the camera, plug in the camera and run the following command in the terminal:
 ```bash
@@ -93,7 +98,7 @@ ros2 run orbbec_camera list_devices_node
 [INFO] [1760450160.424122696] [list_device_node]: serial: AY0F7010108
 [INFO] [1760450160.424135464] [list_device_node]: usb port: 2-4.2
 ```
-カメラのlaunchファイルを書き換える  
+Rewrite the camera launch file. / カメラのLaunchファイルを書き換える．  
 `ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/launch/multi_camera.launch.py`
 ```python
 from launch import LaunchDescription
@@ -153,12 +158,12 @@ camera connection check!
 ```bash
 ros2 launch cibo cibo_depth.launch.py
 ```
-- ROI選択方法（骨格推定を行う範囲を指定する）
-1. ノード起動後、OpenCVウィンドウが表示されます
-2. マウスをドラッグして長方形のROIを選択します
-3. ドラッグ中は青い矩形が表示され，確定後は緑の矩形で表示されます
+- How to Select an ROI (Specify the area for skeleton estimation) / ROI選択方法（骨格推定を行う範囲を指定する）
+1. After launching the node, the OpenCV window will appear. / ノード起動後，OpenCVウィンドウが表示されます
+2. Drag the mouse to specify the area for skeleton estimation. / マウスをドラッグして骨格推定を行う範囲を指定します
+3. A blue rectangle will appear while you drag, and a green rectangle will appear after you confirm. / ドラッグ中は青い矩形が表示され，確定後は緑の矩形で表示されます
 
-### 出力画像を見る(OpenCV Image Show) 
+### View the output image.(OpenCV Image Show) / 出力画像を見る
 ```bash
 ros2 run cibo image_show_node
 ```
@@ -168,6 +173,7 @@ ros2 run cibo chew_counter_node
 ```
 > [!WARNING]
 > `ros2 run cibo chew_counter_node`  
+> It may not function properly as it is currently being adjusted.
 > 調整中のため，正常に動作しない可能性があります．
 
 ### rosbag
