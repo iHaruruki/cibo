@@ -194,8 +194,8 @@ class TopCameraNode(Node):
                 t.header.frame_id = self.camera_frame
                 t.child_frame_id = f'{prefix}_{i}'
                 lx = float(z)
-                ly = -float(X)
-                lz = -float(Y)
+                ly = float(X)
+                lz = float(Y)
                 t.transform.translation.x = float(lx)
                 t.transform.translation.y = float(ly)
                 t.transform.translation.z = float(lz)
