@@ -41,7 +41,7 @@ class FrontCameraNode(Node):
         self.declare_parameter('color_info_topic', '/camera_01/color/camera_info')
         self.declare_parameter('depth_topic', '/camera_01/depth/image_raw')
         self.declare_parameter('depth_info_topic', '/camera_01/depth/camera_info')
-        self.declare_parameter('camera_frame', 'camera_01_link')
+        self.declare_parameter('camera_frame', 'camera_01_depth_optical_frame')
         self.declare_parameter('publish_face_tf', False)  # 顔478点は重いので既定OFF
         self.declare_parameter('tf_rate_hz', 30.0)        # tfスロットリング
 
@@ -216,12 +216,9 @@ class FrontCameraNode(Node):
                 t.header.stamp = color_msg.header.stamp
                 t.header.frame_id = self.camera_frame
                 t.child_frame_id = f'{prefix}_{i}'
-                lx = float(z)
-                ly = -float(X)
-                lz = -float(Y)
-                t.transform.translation.x = float(lx)
-                t.transform.translation.y = float(ly)
-                t.transform.translation.z = float(lz)
+                t.transform.translation.x = float(X)
+                t.transform.translation.y = float(Y)
+                t.transform.translation.z = float(z)
                 # no rotation (identity)
                 t.transform.rotation.x = 0.0
                 t.transform.rotation.y = 0.0
