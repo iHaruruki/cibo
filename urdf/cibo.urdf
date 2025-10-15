@@ -64,7 +64,7 @@
     <origin xyz="0.2 0.0 0.379" rpy="0 1.57 0"/>
   </joint>
 
-  <!-- camera_01_link -->
+  <!-- camera_01_link*Front Camera) -->
   <link name="camera_01_link">
     <visual>
       <geometry>
@@ -80,7 +80,7 @@
     <origin xyz="0.025 0.0 -0.311" rpy="0 0 0"/>
   </joint>
 
-  <!-- camera_02_link -->
+  <!-- camera_02_link(Top Camera) -->
   <link name="camera_02_link">
     <visual>
       <geometry>
@@ -93,7 +93,7 @@
   <joint name="camera_02_joint" type="fixed">
     <parent link="horizontal_bar_link"/>
     <child link="camera_02_link"/>
-    <origin xyz="0.025 0.0 0.2" rpy="0 0 0"/>
+    <origin xyz="0.025 0.0 0.2" rpy="-3.14 0 0"/>
   </joint>
 
 </robot>

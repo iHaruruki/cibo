@@ -40,7 +40,7 @@ class TopCameraNode(Node):
         self.declare_parameter('color_info_topic', '/camera_02/color/camera_info')
         self.declare_parameter('depth_topic', '/camera_02/depth/image_raw')
         self.declare_parameter('depth_info_topic', '/camera_02/depth/camera_info')
-        self.declare_parameter('camera_frame', 'camera_02_link')
+        self.declare_parameter('camera_frame', 'camera_02_depth_optical_frame')
         self.declare_parameter('tf_rate_hz', 30.0)
 
         # Read params
@@ -193,12 +193,9 @@ class TopCameraNode(Node):
                 t.header.stamp = color_msg.header.stamp
                 t.header.frame_id = self.camera_frame
                 t.child_frame_id = f'{prefix}_{i}'
-                lx = float(z)
-                ly = float(X)
-                lz = float(Y)
-                t.transform.translation.x = float(lx)
-                t.transform.translation.y = float(ly)
-                t.transform.translation.z = float(lz)
+                t.transform.translation.x = float(X)
+                t.transform.translation.y = float(Y)
+                t.transform.translation.z = float(z)
                 t.transform.rotation.x = 0.0
                 t.transform.rotation.y = 0.0
                 t.transform.rotation.z = 0.0
