@@ -203,9 +203,9 @@ class TopCameraNode(Node):
                 self.tf_broadcaster.sendTransform(t)
 
         if lhand_lm:
-            broadcast_set(lhand_lm, 'left_hand')
+            broadcast_set(lhand_lm, 'top_camera_left_hand')
         if rhand_lm:
-            broadcast_set(rhand_lm, 'right_hand')
+            broadcast_set(rhand_lm, 'top_camera_right_hand')
 
         disp = annotated_image.copy()
         if self.roi_enabled and self.roi_width > 0 and self.roi_height > 0:

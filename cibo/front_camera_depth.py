@@ -228,13 +228,13 @@ class FrontCameraNode(Node):
 
         # Note: pose=33, hands=21 each, face=478(任意)
         if pose_lm:
-            broadcast_set(pose_lm, 'pose')
+            broadcast_set(pose_lm, 'front_camera_pose')
         if lhand_lm:
-            broadcast_set(lhand_lm, 'left_hand')
+            broadcast_set(lhand_lm, 'front_camera_left_hand')
         if rhand_lm:
-            broadcast_set(rhand_lm, 'right_hand')
+            broadcast_set(rhand_lm, 'front_camera_right_hand')
         if self.publish_face_tf and face_lm:
-            broadcast_set(face_lm, 'face')
+            broadcast_set(face_lm, 'front_camera_face')
 
         # Show ROI helper window
         disp = annotated_image.copy()
