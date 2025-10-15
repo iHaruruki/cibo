@@ -276,31 +276,6 @@ class TopCameraNode(Node):
         roi_ctx = (self.roi_x, self.roi_y, self.roi_width, self.roi_height, self.roi_enabled)
         return full_annot, pose_landmarks, left_hand_landmarks, right_hand_landmarks, roi_ctx
 
-    def extract_pose_landmarks(self, results, width, height, roi_offset, roi_bbox):
-        out = []
-        if results and results.pose_landmarks:
-            W = roi_bbox[2] - roi_bbox[0]
-            H = roi_bbox[3] - roi_bbox[1]
-            for lm in results.pose_landmarks.landmark:
-                x = lm.x * W + roi_offset[0]
-                y = lm.y * H + roi_offset[1]
-                z = lm.z
-                out.extend([x, y, z])
-        return out
-
-    def extract_hand_landmarks(self, hand_lm, width, height, roi_offset, roi_bbox):
-        out = []
-        if hand_lm:
-            W = roi_bbox[2] - roi_bbox[0]
-            H = roi_bbox[3] - roi_bbox[1]
-            for lm in hand_lm.landmark:
-                x = lm.x * W + roi_offset[0]
-                y = lm.y * H + roi_offset[1]
-                z = lm.z
-                out.extend([x, y, z])
-        return out
-
-
 def main(args=None):
     rclpy.init(args=args)
     node = TopCameraNode()
