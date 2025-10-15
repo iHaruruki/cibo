@@ -12,7 +12,7 @@ Please follow link
 [OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file)
 > [!IMPORTANT]
 > branch: `main`  
-> Use the `main` branch instead of the default `v2-main`
+> Use the `main` branch instead of the default `v2-main`  
 > デフォルトの`v2-main`は使用しないで，`main` branchを使用する  
 > 2025.10.14
 
@@ -29,6 +29,7 @@ sudo apt install ros-humble-image-transport
 sudo apt install ros-humble-message-filters
 ```
 ### Setup cibo Repositories
+Clone
 ```bash
 $ cd ~/ros2_ws/src
 $ git clone https://github.com/iHaruruki/cibo.git
@@ -41,7 +42,7 @@ $ source install/setup.bash
 ```
 
 ## 🎮 How to use
-### GitHubと同期
+### Fetch
 Synchronize your local repository with the remote repository.  
 GitHubを更新している可能性があるので，ローカルリポジトリとリモートリポジトリを同期させる．
 ```bash
@@ -58,30 +59,34 @@ cd ~/ros2_ws
 colcon build --symlink-install --packages-select cibo
 source install/setup.bash
 ```
-### Run camera
+### Camera launch
+Run camera
 ```bash
 ros2 launch orbbec_camera multi_camera.launch.py
 ```
-- Check the camera connection. / カメラの接続を確認する．
+Check the camera connection. / カメラの接続を確認する．
 ```bash
 ros2 launch cibo rviz.launch.py
 ```
 View images on rviz2 / rviz2上で画像を確認  
 
-- Is the Front-Camera video being output to the `Front_camra` window? / `Front_camra`ウィンドウにFront-Camera映像が出力されているか
-- Is the Top-Camera video being output to the `Top_camera` window? / `Top_camera`ウィンドウにTop-Camera映像が出力されているか
+- Is the Front-Camera video being output to the `Front_camra` window?  
+    `Front_camra`ウィンドウにFront-Camera映像が出力されているか
+- Is the Top-Camera video being output to the `Top_camera` window?  
+    `Top_camera`ウィンドウにTop-Camera映像が出力されているか
 
 > [!TIP]
-> When the camera connection fails and the Front-Camera/Top-Camera positions are reversed.
+> When the camera connection fails and the Front-Camera/Top-Camera positions are reversed.  
 > カメラの接続に失敗した場合 & Front-Camera/Top-Cameraの位置関係が逆の場合  
 > [Multi-Camera](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file#multi-camera)  
 > Please follow bellow.
 
-To get the usb_port of the camera, plug in the camera and run the following command in the terminal:
+- To get the `usb_port` of the camera, plug in the camera and run the following command in the terminal:  
+カメラの `usb_port` を取得するには，カメラのUSB端子をNUCに接続し，ターミナルで次のコマンドを実行します．
 ```bash
 ros2 run orbbec_camera list_devices_node
 ```
-Result
+Result（usb port 結果が表示される）
 ```bash
 ros2 run orbbec_camera list_devices_node 
 [10/14 22:55:59.986415][info][7139][Context.cpp:68] Context created with config: default config!
@@ -98,7 +103,7 @@ ros2 run orbbec_camera list_devices_node
 [INFO] [1760450160.424122696] [list_device_node]: serial: AY0F7010108
 [INFO] [1760450160.424135464] [list_device_node]: usb port: 2-4.2
 ```
-Rewrite the camera launch file. / カメラのLaunchファイルを書き換える．  
+- Rewrite the camera launch file. / カメラのLaunchファイルを書き換える．  
 `ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/launch/multi_camera.launch.py`
 ```python
 from launch import LaunchDescription
@@ -147,14 +152,15 @@ def generate_launch_description():
 
     return ld
 ```
-Build
+
+- Build
 ```bash
 colcon build --symlink-install --packages-select orbbec_camera
 ```
-camera connection check!
+- Camera connection check!  
 [Run camera](#Run-camera)
 
-### cibo起動
+### Cibo起動
 ```bash
 ros2 launch cibo cibo_depth.launch.py
 ```
@@ -177,10 +183,11 @@ ros2 run cibo chew_counter_node
 > 調整中のため，正常に動作しない可能性があります．
 
 ### rosbag
-画像を録画したい場合は，rosbagを利用
+If you want to record images, use rosbag. / 画像を録画したい場合は，rosbagを利用
 ```bash
+# make rosbag directory
 cd ~/ros2_ws/rosbag
-# もし作成して場合は mkdir -p ~/ros2_ws/rosbag
+# If you have created it, use `mkdir -p ~/ros2_ws/rosbag`
 ```
 Recode all topic
 ```bash
