@@ -158,16 +158,19 @@ def generate_launch_description():
 colcon build --symlink-install --packages-select orbbec_camera
 ```
 - Camera connection check!  
-[Run camera](#Run-camera)
+[Run camera](#Camera-launch)
 
 ### Cibo起動
 ```bash
 ros2 launch cibo cibo_depth.launch.py
 ```
-- How to Select an ROI (Specify the area for skeleton estimation) / ROI選択方法（骨格推定を行う範囲を指定する）
-1. After launching the node, the OpenCV window will appear. / ノード起動後，OpenCVウィンドウが表示されます
-2. Drag the mouse to specify the area for skeleton estimation. / マウスをドラッグして骨格推定を行う範囲を指定します
-3. A blue rectangle will appear while you drag, and a green rectangle will appear after you confirm. / ドラッグ中は青い矩形が表示され，確定後は緑の矩形で表示されます
+How to Select an ROI (Specify the area for skeleton estimation) / ROI選択方法（骨格推定を行う範囲を指定する）
+1. After launching the node, the OpenCV window will appear.  
+    ノード起動後，OpenCVウィンドウが表示されます
+2. Drag the mouse to specify the area for skeleton estimation.  
+    マウスをドラッグして骨格推定を行う範囲を指定します
+3. A blue rectangle will appear while you drag, and a green rectangle will appear after you confirm.  
+    ドラッグ中は青い矩形が表示され，確定後は緑の矩形で表示されます
 
 ### View the output image.(OpenCV Image Show) / 出力画像を見る
 ```bash
@@ -179,15 +182,15 @@ ros2 run cibo chew_counter_node
 ```
 > [!WARNING]
 > `ros2 run cibo chew_counter_node`  
-> It may not function properly as it is currently being adjusted.
+> It may not function properly as it is currently being adjusted.  
 > 調整中のため，正常に動作しない可能性があります．
 
-### rosbag
-If you want to record images, use rosbag. / 画像を録画したい場合は，rosbagを利用
+### [rosbag](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Recording-And-Playing-Back-Data/Recording-And-Playing-Back-Data.html)
+If you want to record images, use rosbg. / 画像を録画したい場合は，rosbagを利用
 ```bash
-# make rosbag directory
-cd ~/ros2_ws/rosbag
-# If you have created it, use `mkdir -p ~/ros2_ws/rosbag`
+# make bag_files directory
+cd ~/ros2_ws/bag_files
+# If you have created it, use `mkdir bag_files`
 ```
 Recode all topic
 ```bash
