@@ -1,6 +1,12 @@
 # cibo
+[![ROS 2 Distro - Humble](https://img.shields.io/badge/ros2-Humble-blue)](https://docs.ros.org/en/humble/)
+
+## 🚀 Overview
+- Estimating human skeletal structure while eating.
+- Estimating a person's state during meals.
+
 ## 🛠️ Setup
-1. Setup camera
+### Setup camera
 Please follow link
 [OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file)
 > [!IMPORTANT]
@@ -8,7 +14,7 @@ Please follow link
 > デフォルトの`v2-main`は使用しないで，`main` branchを使用する  
 > 2025.10.14
 
-2. Setup python environment
+### Setup python environment
 Install python packages
 ```bash
 pip3 install -U "numpy==1.26.4" "opencv-python==4.10.0.84"
@@ -16,9 +22,11 @@ pip3 install opencv-python mediapipe
 ```
 Install ros packages
 ```bash
+sudo apt install ros-humble-cv-bridge
+sudo apt install ros-humble-image-transport
 sudo apt install ros-humble-message-filters
 ```
-3. Setup cibo Repositories
+### Setup cibo Repositories
 ```bash
 $ cd ~/ros2_ws/src
 $ git clone https://github.com/iHaruruki/cibo.git
