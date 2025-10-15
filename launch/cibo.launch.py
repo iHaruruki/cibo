@@ -1,8 +1,8 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.action import DeclareLaunchArgument
-from launch.substitution import LaunchConfiguration
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
@@ -12,24 +12,26 @@ def generate_launch_description():
 
     urdf_file_name = 'cibo.urdf'
 
-    urdf_file_name = os.path.join(
+    urdf = os.path.join(
         get_package_share_directory('cibo'),
         urdf_file_name)
+
+    # Open and read the URDF file
     with open(urdf, 'r') as infp:
         robot_desc = infp.read()
 
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
-            default_value='false'
-            descripription='Use simulation (Gazebo) clock if true'),
+            default_value='false',
+            description='Use simulation (Gazebo) clock if true'),  # Fixed typo in description
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             name='robot_state_publisher',
             output='screen',
             parameters=[{'use_sim_time': use_sim_time, 'robot_description': robot_desc}],
-            arguments=[urdf]
+            arguments=[urdf]  # Pass the correct URDF file path
         ),
         Node(
             package='cibo',
