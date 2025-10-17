@@ -77,7 +77,7 @@
   <joint name="camera_01_joint" type="fixed">
     <parent link="vertical_bar_link"/>
     <child link="camera_01_link"/>
-    <origin xyz="0.025 0.0 -0.311" rpy="0 0 0"/>
+    <origin xyz="0.16 0.0 -0.311" rpy="0 0 0"/>
   </joint>
 
   <!-- camera_02_link(Top Camera) -->
