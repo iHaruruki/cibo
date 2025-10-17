@@ -28,8 +28,8 @@ class FrontCameraNode(Node):
         self.mp_face_mesh = mp.solutions.face_mesh
 
         # ==== Parameters ====
-        self.declare_parameter('min_detection_confidence', 0.5)
-        self.declare_parameter('min_tracking_confidence', 0.5)
+        self.declare_parameter('min_detection_confidence', 0.6)
+        self.declare_parameter('min_tracking_confidence', 0.6)
         self.declare_parameter('roi_enabled', False)
         self.declare_parameter('roi_x', 0)
         self.declare_parameter('roi_y', 0)
