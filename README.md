@@ -409,7 +409,7 @@ Nose-chin distance / 鼻先-顎先距離
 ```math
 d_j = d(P_{nose}, P_{chin})
 ```
-$ P_{chin} $ : Chin landmark coordinate / 顎先ランドマーク座標
+$P_{chin $ : Chin landmark coordinate / 顎先ランドマーク座標
 
 Mouth opening amount / 口の開き具合
 ```math
@@ -428,14 +428,14 @@ MAR Exponential Moving Average (EMA) / MAR指数移動平均
 MAR_{ema}(t) = \alpha \cdot MAR(t) + (1 - \alpha) \cdot MAR_{ema}(t-1) \\
 Initial condition: mathrm{MAR}_{ema}(t_0) = \mathrm{MAR}(t_0)
 ```
-$ \alpha $ : ema_alpha parameter
+$\alpha$ : ema_alpha parameter
 
 ### State detection conditions
 Feeding state / 摂食
 ```math
 Feeding \iff d_h < \theta_{feed}
 ```
-$ \theta_{feed} $ = feeding_distance_threshold
+$\theta_{feed}$ = feeding_distance_threshold
 
 Speaking state / 発話
 ```math
