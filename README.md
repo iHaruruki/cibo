@@ -401,9 +401,9 @@ d_{hL} = d(P_{hand,L}, P_{nose}) \\
 Compare hR and hL and use the smaller one \\
 d_h = min(d_{hR}, d_{hL})
 ```
-$ d_{hand,R} $ : Right hand landmark coordinate / 右手ランドマーク座標  
-$ d_{hand,L} $ : Left hand landmark coordinate / 左手ランドマーク座標  
-$ d_{nose} $ : Nose landmark coordinate / 鼻先ランドマーク座標
+$d_{hand,R}$ : Right hand landmark coordinate / 右手ランドマーク座標  
+$d_{hand,L}$ : Left hand landmark coordinate / 左手ランドマーク座標  
+$d_{nose}$ : Nose landmark coordinate / 鼻先ランドマーク座標
 
 Nose-chin distance / 鼻先-顎先距離
 ```math
@@ -441,12 +441,17 @@ Speaking state / 発話
 ```math
 Speaking \iff (MAR_{ema} > \theta_{speak}) \land \neg Chewing
 ```
-$ \theta_{speak} $ = speaking_mar_threshold
+$\theta_{speak}$ = speaking_mar_threshold
 
 Chewing state / 咀嚼
-Chewing judgment conditions
+Conditions for starting the chewing cycle (the moment the mouth opens)
 ```math
-Chewing \iff \theta_{low} < MAR_{ema} < 2\theta_{high} \land \neg (Feeding) 
+if \neg C_{open}(t-1) \land MAR_{ema}(t) > \theta_{high} \implies C_{open}(t) = True
+```
+$C_{open}(t)$ is a flag indicating that the cycle is in an open state. \\
+End condition of the chewing cycle (the moment the mouth closes)
+```math
+if C_{open}(t-1) \land MAR_{ema}(t) < \theta_{low} \implies C_{open}(t) = False
 ```
 ```math
 \left\{
