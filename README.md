@@ -461,10 +461,19 @@ C_{open}(t -1 ) = True \\
 C_{open}(t) = False \\
 \delta t = t - t_{last} > T_{min}
 \end{align*}
-\right. 
-\implies chewing_count := chewing_count + 1
-```
+\right\}
 
+\implies \text{ChewingCount} := \text{ChewingCount} + 1
+```
+| 記号                      | 意味                             |
+| :---------------------- | :----------------------------- |
+| $\mathrm{MAR}_{ema}(t)$ | MAR の指数移動平均値                   |
+| $\theta_{high}$         | 咀嚼開口側閾値（`chewing_mar_high`）    |
+| $\theta_{low}$          | 咀嚼閉口側閾値（`chewing_mar_low`）     |
+| $C_{open}(t)$           | 現在の咀嚼サイクルが開状態かを表すブール値          |
+| $t_{\text{last}}$       | 直近の咀嚼完了時刻                      |
+| $T_{\min}$              | 最小咀嚼間隔（`min_chewing_interval`） |
+| $\Delta t$              | 現在と前回の咀嚼完了時刻との差                |
 
 Idle state / 静止
 ```math
