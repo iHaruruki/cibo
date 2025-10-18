@@ -108,6 +108,44 @@ flowchart TD
   FProject --> FTF["Broadcast TF frames (rate limit by tf_rate_hz)"]
   FDraw --> FGUI["Show ROI window (drag=set, r=reset, q=close)"]
 ```
+Chewing Count Node
+```mermaid
+flowchart TD
+  A["Start node: eating_state_detector"] --> P["Declare & get parameters\n(ema_alpha, feeding/speaking/chewing thresholds,\nmin_chewing_interval, stability_frames)"]
+  P --> Q["Create QoSProfile\n(BEST_EFFORT, depth=5)"]
+  Q --> S["Create subscribers\n/front_camera/pose_landmarks\n/front_camera/face_landmarks\n/front_camera/left_hand_landmarks\n/front_camera/right_hand_landmarks"]
+  Q --> PUBS_INIT["Create publishers\n/eating_state/current_state\n/eating_state/chewing_count\n/eating_state/dh, /dj, /dm\n/eating_state/metrics"]
+
+  %% Callbacks -> update_state
+  S -->|pose_callback / face_callback /\nleft_hand_callback / right_hand_callback| U["update_state()"]
+
+  %% update_state pipeline
+  U --> CM["calculate_metrics()\n- dh_r, dh_l, dh = min(dh_r, dh_l)\n- dj = nose↔chin distance\n- dm = upper_lip↔lower_lip distance\n- MAR = dm / mouth_width\n- mar_ema = EMA(MAR)"]
+  CM --> PDM["publish_distance_metrics()\n-> /eating_state/dh, /dj, /dm"]
+
+  %% Determine state
+  CM --> DET["determine_eating_state()"]
+  DET --> FEED["detect_feeding():\ndh != inf and dh < feeding_threshold"]
+  DET --> SPEAK["detect_speaking():\nmar_ema > speaking_threshold\nand not detect_chewing()"]
+  DET --> CHEW["detect_chewing():\nmar_ema hysteresis (high/low)\ncycle timing > min_chewing_interval\n-> increment & publish count"]
+  FEED --> NEWSTATE["new_state = FEEDING"]
+  SPEAK --> NEWSTATE_S["new_state = SPEAKING"]
+  CHEW --> NEWSTATE_C["new_state = CHEWING"]
+  DET -->|else| NEWSTATE_I["new_state = IDLE"]
+
+  %% State stability & publish
+  NEWSTATE --> HIST["state_history.append(new_state)\n(maxlen = stability_frames)"]
+  NEWSTATE_S --> HIST
+  NEWSTATE_C --> HIST
+  NEWSTATE_I --> HIST
+
+  HIST --> STABLE{"all entries equal\nfor stability_frames?"}
+  STABLE -- Yes --> SET["current_state := new_state\n(log transition)"]
+  STABLE -- No --> KEEP["keep current_state"]
+
+  SET --> PUBALL["Publish current_state -> /eating_state/current_state\nPublish metrics array -> /eating_state/metrics\n(chewing_count is published on updates)"]
+  KEEP --> PUBALL
+```
 
 
 ## 🛠️ Setup
