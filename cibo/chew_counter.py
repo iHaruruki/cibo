@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+# Copyright (c) 2025 Haruki Isono
+# This software is released under the MIT License, see LICENSE.
+
 import time, math
 from collections import deque
 import numpy as np

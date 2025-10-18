@@ -374,12 +374,95 @@ MAR（Mouth Aspect Ratio）は以下の4点のランドマーク座標を使用�
 
 式：
 ```math
-$$ MAR = \frac{vertical distance (upper–lower lip)}{horizontal distance (left–right corner)} $$
+MAR = \frac{vertical distance (upper–lower lip)}{horizontal distance (left–right corner)}
 ```
 
 MediaPipe Face Mesh の代表点で書くと：
 ```math
-$$ MAR = \frac{|P_{13} - P_{14}|}{|P_{61} - P_{291}|} $$
+MAR = \frac{|P_{13} - P_{14}|}{|P_{61} - P_{291}|}
+```
+
+## eating_state_detection
+### Distance between landmarks
+Each landmark coordinate is a 3D vector / 各ランドマーク座標は3次元ベクトル
+```math
+P = (x, y, z)
+```
+
+Distance between any two points / 任意の2点間の距離
+```math
+d(A,B) = \sqrt{(A_x - B_x)^2 + (A_y - B_y)^2 + (A_z - B_z)^2}
+```
+
+Distance from the tip of the nose to the right and left hands / 右手・左手それぞれの鼻先との距離
+```math
+d_{hR} = d(P_{hand,R}, P_{nose}) \\
+d_{hL} = d(P_{hand,L}, P_{nose}) \\
+Compare hR and hL and use the smaller one \\
+d_h = min(d_{hR}, d_{hL})
+```
+$ d_{hand,R} $ : Right hand landmark coordinate / 右手ランドマーク座標  
+$ d_{hand,L} $ : Left hand landmark coordinate / 左手ランドマーク座標  
+$ d_{nose} $ : Nose landmark coordinate / 鼻先ランドマーク座標
+
+Nose-chin distance / 鼻先-顎先距離
+```math
+d_j = d(P_{nose}, P_{chin})
+```
+$ P_{chin} $ : Chin landmark coordinate / 顎先ランドマーク座標
+
+Mouth opening amount / 口の開き具合
+```math
+Distance between upper and lower lips (vertical direction) / 上唇と下唇の距離（垂直方向）\\
+d_m = d(P_{upper\_lip}, P_{lower\_lip}) \\
+
+Distance between corners of mouth (horizontally) \\
+d_h = d(P_{left\_corner}, P_{right\_corner}) \\
+
+MAR (mouth aspect ratio) / 口の縦横比 \\
+MAR = \frac{d_m}{d_h}
+```
+
+MAR Exponential Moving Average (EMA) / MAR指数移動平均
+```math
+MAR_{ema}(t) = \alpha \cdot MAR(t) + (1 - \alpha) \cdot MAR_{ema}(t-1) \\
+Initial condition: mathrm{MAR}_{ema}(t_0) = \mathrm{MAR}(t_0)
+```
+$ \alpha $ : ema_alpha parameter
+
+### State detection conditions
+Feeding state / 摂食
+```math
+Feeding \iff d_h < \theta_{feed}
+```
+$ \theta_{feed} $ = feeding_distance_threshold
+
+Speaking state / 発話
+```math
+Speaking \iff (MAR_{ema} > \theta_{speak}) \land \neg Chewing
+```
+$ \theta_{speak} $ = speaking_mar_threshold
+
+Chewing state / 咀嚼
+Chewing judgment conditions
+```math
+Chewing \iff \theta_{low} < MAR_{ema} < 2\theta_{high} \land \neg (Feeding) 
+```
+```math
+\left\{
+\begin{align*}
+\text{Open Cycle Start:} & \quad MAR_{ema} > \theta_{chew\_high} \\
+\text{Close Cycle Start:} & \quad MAR_{ema} < \theta_{chew\_low} \\
+\end{align*}
+\right. \\
+
+\delta t > min_chewing_interval
+```
+$ \delta t $ : Time since last chewing cycle / 最後の咀嚼サイクルからの時間
+
+Idle state / 静止
+```math
+Idle \iff \neg (Feeding \lor Speaking \lor Chewing)
 ```
 
 ## 🧩 Topic List
@@ -462,6 +545,9 @@ $$ MAR = \frac{|P_{13} - P_{14}|}{|P_{61} - P_{291}|} $$
 - [MediaPipe](https://chuoling.github.io/mediapipe/)
 - [Mermaid](https://mermaid.js.org/)
 - [mermaidでフローチャートを描く](https://zenn.dev/yuriemori/articles/e097dbd950df86#%E5%9B%B3%E3%81%AE%E7%A8%AE%E9%A1%9E)
+- [はじめてのLaTex: 数式の入力と環境構築](https://guides.lib.kyushu-u.ac.jp/LaTeX-LectureNote/equations)
+- [LaTex - コマンド一覧](https://yokatoki.sakura.ne.jp/LaTeX/latex.html)
+- [数式の記述(markdown)](https://docs.github.com/ja/enterprise-cloud@latest/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions)
 
 ## 📜 License
 The source code is licensed MIT. Please see LICENSE.
