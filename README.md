@@ -444,26 +444,27 @@ Speaking \iff (MAR_{ema} > \theta_{speak}) \land \neg Chewing
 $\theta_{speak}$ = speaking_mar_threshold
 
 Chewing state / 咀嚼
-Conditions for starting the chewing cycle (the moment the mouth opens)
 ```math
+\text{Conditions for starting the chewing cycle (the moment the mouth opens)}
 if \neg C_{open}(t-1) \land MAR_{ema}(t) > \theta_{high} \implies C_{open}(t) = True
 ```
 $C_{open}(t)$ is a flag indicating that the cycle is in an open state. \\
-End condition of the chewing cycle (the moment the mouth closes)
+
 ```math
+\text{End condition of the chewing cycle (the moment the mouth closes)}\\
 if C_{open}(t-1) \land MAR_{ema}(t) < \theta_{low} \implies C_{open}(t) = False
 ```
 ```math
-\left\{
+if\left\{
 \begin{align*}
-\text{Open Cycle Start:} & \quad MAR_{ema} > \theta_{chew\_high} \\
-\text{Close Cycle Start:} & \quad MAR_{ema} < \theta_{chew\_low} \\
+C_{open}(t -1 ) = True \\
+C_{open}(t) = False \\
+\delta t = t - t_{last} > T_{min}
 \end{align*}
-\right. \\
-
-\delta t > min_chewing_interval
+\right. 
+\implies chewing_count := chewing_count + 1
 ```
-$ \delta t $ : Time since last chewing cycle / 最後の咀嚼サイクルからの時間
+
 
 Idle state / 静止
 ```math
