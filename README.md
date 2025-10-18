@@ -6,7 +6,7 @@
 - Estimating a person's state during meals.
 
 ## Feature
-Nodes & Topics
+### Nodes & Topics
 ```mermaid
 flowchart LR
     A([camera_01])
@@ -65,26 +65,48 @@ flowchart LR
     Q --> E
     R --> E
 ```
-Flowchart
+### Flowchart
+front_camera_depth_node
 ```mermaid
-graph TD
+flowchart TD
   FStart([front_camera_node]) --> FSync[ApproximateTimeSynchronizer]
-  FInputs[Sub: /camera_01/color/image_raw<br/>Sub: /camera_01/depth/image_raw<br/>Sub: /camera_01/depth/camera_info] --> FSync
-  FSync --> FColor[Convert color via CvBridge (bgr8)]
-  FSync --> FDepth[Decode depth → meters]
+  FInputs["Sub: /camera_01/color/image_raw\nSub: /camera_01/depth/image_raw\nSub: /camera_01/depth/camera_info"] --> FSync
+  FSync --> FColor["Convert color via CvBridge (bgr8)"]
+  FSync --> FDepth["Decode depth → meters"]
   FColor --> FROI{ROI enabled?}
-  FROI -- Yes --> FCrop[Crop image to ROI]
-  FROI -- No --> FNoCrop[Use full image]
-  FCrop --> FMp[Run MediaPipe Holistic + FaceMesh]
+  FROI -- Yes --> FCrop["Crop image to ROI"]
+  FROI -- No --> FNoCrop["Use full image"]
+  FCrop --> FMp["Run MediaPipe Holistic + FaceMesh"]
   FNoCrop --> FMp
-  FMp --> FDraw[Draw landmarks → annotated]
-  FMp --> FExtract[Extract arrays: pose, face, left/right hand]
-  FDraw --> FPubImg[Publish: /front_camera/annotated_image]
-  FExtract --> FPubLm[Publish: /front_camera/pose_landmarks,<br/>/front_camera/face_landmarks,<br/>/front_camera/left_hand_landmarks,<br/>/front_camera/right_hand_landmarks]
-  FDepth --> FProject[Project 2D + depth → 3D (fx, fy, cx, cy)]
+  FMp --> FDraw["Draw landmarks → annotated"]
+  FMp --> FExtract["Extract arrays: pose, face, left/right hand"]
+  FDraw --> FPubImg["Publish: /front_camera/annotated_image"]
+  FExtract --> FPubLm["Publish: /front_camera/pose_landmarks, /front_camera/face_landmarks, /front_camera/left_hand_landmarks, /front_camera/right_hand_landmarks"]
+  FDepth --> FProject["Project 2D + depth → 3D (fx, fy, cx, cy)"]
   FExtract --> FProject
-  FProject --> FTF[Broadcast TF frames (rate limit by tf_rate_hz)]
-  FDraw --> FGUI[Show ROI window (drag=set, r=reset, q=close)]
+  FProject --> FTF["Broadcast TF frames (rate limit by tf_rate_hz)"]
+  FDraw --> FGUI["Show ROI window (drag=set, r=reset, q=close)"]
+```
+front_camera_depth_node
+```mermaid
+flowchart TD
+  TStart([top_camera_node]) --> TSync[ApproximateTimeSynchronizer]
+  TInputs["Sub: /camera_02/color/image_raw\nSub: /camera_02/depth/image_raw\nSub: /camera_02/depth/camera_info"] --> TSync
+  TSync --> TColor["Convert color via CvBridge (bgr8)"]
+  TSync --> TDepth["Decode depth → meters"]
+  TColor --> TROI{ROI enabled?}
+  TROI -- Yes --> TCrop["Crop image to ROI"]
+  TROI -- No --> TNoCrop["Use full image"]
+  TCrop --> TMp["Run MediaPipe Hands"]
+  TNoCrop --> TMp
+  TMp --> TDraw["Draw hand landmarks → annotated"]
+  TMp --> TExtract["Extract arrays: left/right hand"]
+  TDraw --> TPubImg["Publish: /top_camera/annotated_image"]
+  TExtract --> TPubLm["Publish: /top_camera/left_hand_landmarks, /top_camera/right_hand_landmarks"]
+  TDepth --> TProject["Project 2D + depth → 3D (fx, fy, cx, cy)"]
+  TExtract --> TProject
+  TProject --> TTF["Broadcast TF frames (rate limit by tf_rate_hz)"]
+  TDraw --> TGUI["Show ROI window (drag=set, r=reset, q=close)"]
 ```
 
 ## 🛠️ Setup
