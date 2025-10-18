@@ -65,6 +65,27 @@ flowchart LR
     Q --> E
     R --> E
 ```
+Flowchart
+```mermaid
+graph TD
+  FStart([front_camera_node]) --> FSync[ApproximateTimeSynchronizer]
+  FInputs[Sub: /camera_01/color/image_raw<br/>Sub: /camera_01/depth/image_raw<br/>Sub: /camera_01/depth/camera_info] --> FSync
+  FSync --> FColor[Convert color via CvBridge (bgr8)]
+  FSync --> FDepth[Decode depth → meters]
+  FColor --> FROI{ROI enabled?}
+  FROI -- Yes --> FCrop[Crop image to ROI]
+  FROI -- No --> FNoCrop[Use full image]
+  FCrop --> FMp[Run MediaPipe Holistic + FaceMesh]
+  FNoCrop --> FMp
+  FMp --> FDraw[Draw landmarks → annotated]
+  FMp --> FExtract[Extract arrays: pose, face, left/right hand]
+  FDraw --> FPubImg[Publish: /front_camera/annotated_image]
+  FExtract --> FPubLm[Publish: /front_camera/pose_landmarks,<br/>/front_camera/face_landmarks,<br/>/front_camera/left_hand_landmarks,<br/>/front_camera/right_hand_landmarks]
+  FDepth --> FProject[Project 2D + depth → 3D (fx, fy, cx, cy)]
+  FExtract --> FProject
+  FProject --> FTF[Broadcast TF frames (rate limit by tf_rate_hz)]
+  FDraw --> FGUI[Show ROI window (drag=set, r=reset, q=close)]
+```
 
 ## 🛠️ Setup
 ### Setup Camera ([Astra Stereo S U3](https://store.orbbec.com/products/astra-stereo-s-u3?srsltid=AfmBOop-7Cnl_FU8fo6iytP43uBmOZTonKg5eosq_w3jRvFCeXtigKCG))
