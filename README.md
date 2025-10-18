@@ -9,7 +9,7 @@
 ### Setup Camera ([Astra Stereo S U3](https://store.orbbec.com/products/astra-stereo-s-u3?srsltid=AfmBOop-7Cnl_FU8fo6iytP43uBmOZTonKg5eosq_w3jRvFCeXtigKCG))
 
 Please follow link  
-[OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file)
+[OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2.git)
 > [!IMPORTANT]
 > branch: `main`  
 > Use the `main` branch instead of the default `v2-main`  
@@ -78,7 +78,7 @@ View images on rviz2 / rviz2上で画像を確認
 > [!TIP]
 > When the camera connection fails and the Front-Camera/Top-Camera positions are reversed.  
 > カメラの接続に失敗した場合 & Front-Camera/Top-Cameraの位置関係が逆の場合  
-> [Multi-Camera](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main-legacy?tab=readme-ov-file#multi-camera)  
+> [Multi-Camera](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main?tab=readme-ov-file#multi-camera)  
 > Please follow bellow.
 
 - To get the `usb_port` of the camera, plug in the camera and run the following command in the terminal:  
