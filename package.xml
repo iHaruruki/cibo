@@ -3,7 +3,7 @@
 <package format="3">
   <name>cibo</name>
   <version>1.0.0</version>
-  <description>Cibo</description>
+  <description>Eating Behavior Recognition for Elderly People.</description>
   <maintainer email="haruki.isono861@gmail.com">Haruki Isono</maintainer>
   <license>TODO: License declaration</license>
 

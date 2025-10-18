@@ -1,3 +1,6 @@
+# Copyright (c) 2025 Haruki Isono
+# This software is released under the MIT License, see LICENSE.
+
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription

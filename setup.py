@@ -18,9 +18,9 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='HarukiIsono',
+    maintainer='Haruki Isono',
     maintainer_email='haruki.isono861@gmail.com',
-    description='TODO: Package description',
+    description='Eating Behavior Recognition for Elderly People.',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
