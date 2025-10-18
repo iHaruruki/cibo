@@ -359,12 +359,12 @@ Recode
 - **説明**: トップカメラ用の骨格推定ノード.ポーズと手の検出に特化
 
 ### chew_counter_node
-- **説明**: 咀嚼回数をカウントする
-[methods](chewing_count.md)
+- **説明**: 咀嚼回数をカウントする  
+[methods](documents/chewing_count.md)
 
 ## eating_state_detection
-**説明**: 状態推定
-[methods](chewing_count.md)
+**説明**: 状態推定  
+[methods](documents/chewing_count.md)
 
 ## 🧩 Topic List
 
