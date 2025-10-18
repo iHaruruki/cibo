@@ -69,27 +69,6 @@ flowchart LR
 front_camera_depth_node
 ```mermaid
 flowchart TD
-  FStart([front_camera_node]) --> FSync[ApproximateTimeSynchronizer]
-  FInputs["Sub: /camera_01/color/image_raw\nSub: /camera_01/depth/image_raw\nSub: /camera_01/depth/camera_info"] --> FSync
-  FSync --> FColor["Convert color via CvBridge (bgr8)"]
-  FSync --> FDepth["Decode depth → meters"]
-  FColor --> FROI{ROI enabled?}
-  FROI -- Yes --> FCrop["Crop image to ROI"]
-  FROI -- No --> FNoCrop["Use full image"]
-  FCrop --> FMp["Run MediaPipe Holistic + FaceMesh"]
-  FNoCrop --> FMp
-  FMp --> FDraw["Draw landmarks → annotated"]
-  FMp --> FExtract["Extract arrays: pose, face, left/right hand"]
-  FDraw --> FPubImg["Publish: /front_camera/annotated_image"]
-  FExtract --> FPubLm["Publish: /front_camera/pose_landmarks, /front_camera/face_landmarks, /front_camera/left_hand_landmarks, /front_camera/right_hand_landmarks"]
-  FDepth --> FProject["Project 2D + depth → 3D (fx, fy, cx, cy)"]
-  FExtract --> FProject
-  FProject --> FTF["Broadcast TF frames (rate limit by tf_rate_hz)"]
-  FDraw --> FGUI["Show ROI window (drag=set, r=reset, q=close)"]
-```
-front_camera_depth_node
-```mermaid
-flowchart TD
   TStart([top_camera_node]) --> TSync[ApproximateTimeSynchronizer]
   TInputs["Sub: /camera_02/color/image_raw\nSub: /camera_02/depth/image_raw\nSub: /camera_02/depth/camera_info"] --> TSync
   TSync --> TColor["Convert color via CvBridge (bgr8)"]
@@ -108,6 +87,28 @@ flowchart TD
   TProject --> TTF["Broadcast TF frames (rate limit by tf_rate_hz)"]
   TDraw --> TGUI["Show ROI window (drag=set, r=reset, q=close)"]
 ```
+front_camera_depth_node
+```mermaid
+flowchart TD
+  FStart([front_camera_node]) --> FSync[ApproximateTimeSynchronizer]
+  FInputs["Sub: /camera_01/color/image_raw\nSub: /camera_01/depth/image_raw\nSub: /camera_01/depth/camera_info"] --> FSync
+  FSync --> FColor["Convert color via CvBridge (bgr8)"]
+  FSync --> FDepth["Decode depth → meters"]
+  FColor --> FROI{ROI enabled?}
+  FROI -- Yes --> FCrop["Crop image to ROI"]
+  FROI -- No --> FNoCrop["Use full image"]
+  FCrop --> FMp["Run MediaPipe Holistic + FaceMesh"]
+  FNoCrop --> FMp
+  FMp --> FDraw["Draw landmarks → annotated"]
+  FMp --> FExtract["Extract arrays: pose, face, left/right hand"]
+  FDraw --> FPubImg["Publish: /front_camera/annotated_image"]
+  FExtract --> FPubLm["Publish: /front_camera/pose_landmarks, /front_camera/face_landmarks, /front_camera/left_hand_landmarks, /front_camera/right_hand_landmarks"]
+  FDepth --> FProject["Project 2D + depth → 3D (fx, fy, cx, cy)"]
+  FExtract --> FProject
+  FProject --> FTF["Broadcast TF frames (rate limit by tf_rate_hz)"]
+  FDraw --> FGUI["Show ROI window (drag=set, r=reset, q=close)"]
+```
+
 
 ## 🛠️ Setup
 ### Setup Camera ([Astra Stereo S U3](https://store.orbbec.com/products/astra-stereo-s-u3?srsltid=AfmBOop-7Cnl_FU8fo6iytP43uBmOZTonKg5eosq_w3jRvFCeXtigKCG))
