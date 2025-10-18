@@ -313,8 +313,10 @@ $$ MAR = \frac{|P_{13} - P_{14}|}{|P_{61} - P_{291}|} $$
 | `min_tracking_confidence` | double | 0.5 | 追跡の最小信頼度 |
 
 ## 👤 Authors
-
 - **[iHaruruki](https://github.com/iHaruruki)** — Main author & maintainer
 
 ## 📚 Reference
 [MediaPipe](https://chuoling.github.io/mediapipe/)
+
+## 📜 License
+The source code is licensed MIT. Please see LICENSE.
