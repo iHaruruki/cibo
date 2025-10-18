@@ -8,63 +8,62 @@
 ## Feature
 Nodes & Topics
 ```mermaid
-graph TB
-    %% External camera topics (hardware/drivers)
-    subgraph Camera_01["Camera 01 - RealSense"]
-        cam01_color["/camera_01/color/image_raw"]
-        cam01_color_info["/camera_01/color/camera_info"]
-        cam01_depth["/camera_01/depth/image_raw"]
-        cam01_depth_info["/camera_01/depth/camera_info"]
-    end
-    
-    subgraph Camera_02["Camera 02 - RealSense"]
-        cam02_color["/camera_02/color/image_raw"]
-        cam02_color_info["/camera_02/color/camera_info"]
-        cam02_depth["/camera_02/depth/image_raw"]
-        cam02_depth_info["/camera_02/depth/camera_info"]
-    end
-    
-    %% Nodes
-    robot_state_pub(("robot_state_publisher"))
-    front_camera(("front_camera_node"))
-    top_camera(("top_camera_node"))
-    
-    %% robot_state_publisher publishes
-    robot_state_pub -->|publishes| tf_static["/tf_static"]
-    robot_state_pub -->|publishes| tf["/tf"]
-    
-    %% Front Camera subscriptions
-    cam01_color -->|subscribes| front_camera
-    cam01_depth -->|subscribes| front_camera
-    cam01_depth_info -->|subscribes| front_camera
-    
-    %% Front Camera publications
-    front_camera -->|publishes| front_annotated["/front_camera/annotated_image"]
-    front_camera -->|publishes| front_pose["/front_camera/pose_landmarks"]
-    front_camera -->|publishes| front_face["/front_camera/face_landmarks"]
-    front_camera -->|publishes| front_left_hand["/front_camera/left_hand_landmarks"]
-    front_camera -->|publishes| front_right_hand["/front_camera/right_hand_landmarks"]
-    front_camera -->|broadcasts| tf
-    
-    %% Top Camera subscriptions
-    cam02_color -->|subscribes| top_camera
-    cam02_depth -->|subscribes| top_camera
-    cam02_depth_info -->|subscribes| top_camera
-    
-    %% Top Camera publications
-    top_camera -->|publishes| top_annotated["/top_camera/annotated_image"]
-    top_camera -->|publishes| top_left_hand["/top_camera/left_hand_landmarks"]
-    top_camera -->|publishes| top_right_hand["/top_camera/right_hand_landmarks"]
-    top_camera -->|broadcasts| tf
-    
-    %% Styling
-    classDef nodeStyle fill:#4CAF50,stroke:#2E7D32,stroke-width:2px,color:#fff
-    classDef topicStyle fill:#2196F3,stroke:#1565C0,stroke-width:2px,color:#fff
-    classDef cameraStyle fill:#FF9800,stroke:#E65100,stroke-width:2px,color:#fff
-    
-    class robot_state_pub,front_camera,top_camera nodeStyle
-    class tf_static,tf,front_annotated,front_pose,front_face,front_left_hand,front_right_hand,top_annotated,top_left_hand,top_right_hand topicStyle
-    class cam01_color,cam01_color_info,cam01_depth,cam01_depth_info,cam02_color,cam02_color_info,cam02_depth,cam02_depth_info cameraStyle
+flowchart LR
+    A([camera_01])
+    B([camera_02])
+    C([front_camera_node])
+    D([top_camera_node])
+    E([eating_state_detector_node])
+    F([robot_state_publisher])
+    G[[TF]]
+
+    H(/camera_01/color/image_raw)
+    I(/camera_01/depth/image_raw)
+    J(/camera_01/depth/camera_info)
+    K(/camera_02/color/image_raw)
+    L(/camera_02/depth/image_raw)
+    M(/camera_02/depth/camera_info)
+    N(/front_camera/annotated_image)
+    O(/front_camera/pose_landmarks)
+    P(/front_camera/face_landmarks)
+    Q(/front_camera/left_hand_landmarks)
+    R(/front_camera/right_hand_landmarks)
+    S(/top_camera/annotated_image)
+    T(/top_camera/left_hand_landmarks)
+    U(/top_camera/right_hand_landmarks)
+    V(/robot_description)
+
+    A --> H
+    A --> I
+    A --> J
+    H --> C
+    I --> C
+    J --> C
+    C --> N
+    C --> O
+    C --> P
+    C --> Q
+    C --> R
+    C --> G
+
+    B --> K
+    B --> L
+    B --> M
+    K --> D
+    L --> D
+    M --> D
+    D --> S
+    D --> T
+    D --> U
+    D --> G
+
+    F --> V
+    F --> G
+
+    O --> E
+    P --> E
+    Q --> E
+    R --> E
 ```
 
 ## 🛠️ Setup
