@@ -10,28 +10,28 @@ Nodes & Topics
 ```mermaid
 graph TB
     %% External camera topics (hardware/drivers)
-    subgraph Camera_01[Camera 01 - RealSense]
-        cam01_color[/camera_01/color/image_raw]
-        cam01_color_info[/camera_01/color/camera_info]
-        cam01_depth[/camera_01/depth/image_raw]
-        cam01_depth_info[/camera_01/depth/camera_info]
+    subgraph Camera_01["Camera 01 - RealSense"]
+        cam01_color["/camera_01/color/image_raw"]
+        cam01_color_info["/camera_01/color/camera_info"]
+        cam01_depth["/camera_01/depth/image_raw"]
+        cam01_depth_info["/camera_01/depth/camera_info"]
     end
     
-    subgraph Camera_02[Camera 02 - RealSense]
-        cam02_color[/camera_02/color/image_raw]
-        cam02_color_info[/camera_02/color/camera_info]
-        cam02_depth[/camera_02/depth/image_raw]
-        cam02_depth_info[/camera_02/depth/camera_info]
+    subgraph Camera_02["Camera 02 - RealSense"]
+        cam02_color["/camera_02/color/image_raw"]
+        cam02_color_info["/camera_02/color/camera_info"]
+        cam02_depth["/camera_02/depth/image_raw"]
+        cam02_depth_info["/camera_02/depth/camera_info"]
     end
     
     %% Nodes
-    robot_state_pub((robot_state_publisher))
-    front_camera((front_camera_node))
-    top_camera((top_camera_node))
+    robot_state_pub(("robot_state_publisher"))
+    front_camera(("front_camera_node"))
+    top_camera(("top_camera_node"))
     
     %% robot_state_publisher publishes
-    robot_state_pub -->|publishes| tf_static[/tf_static]
-    robot_state_pub -->|publishes| tf[/tf]
+    robot_state_pub -->|publishes| tf_static["/tf_static"]
+    robot_state_pub -->|publishes| tf["/tf"]
     
     %% Front Camera subscriptions
     cam01_color -->|subscribes| front_camera
@@ -39,11 +39,11 @@ graph TB
     cam01_depth_info -->|subscribes| front_camera
     
     %% Front Camera publications
-    front_camera -->|publishes| front_annotated[/front_camera/annotated_image]
-    front_camera -->|publishes| front_pose[/front_camera/pose_landmarks]
-    front_camera -->|publishes| front_face[/front_camera/face_landmarks]
-    front_camera -->|publishes| front_left_hand[/front_camera/left_hand_landmarks]
-    front_camera -->|publishes| front_right_hand[/front_camera/right_hand_landmarks]
+    front_camera -->|publishes| front_annotated["/front_camera/annotated_image"]
+    front_camera -->|publishes| front_pose["/front_camera/pose_landmarks"]
+    front_camera -->|publishes| front_face["/front_camera/face_landmarks"]
+    front_camera -->|publishes| front_left_hand["/front_camera/left_hand_landmarks"]
+    front_camera -->|publishes| front_right_hand["/front_camera/right_hand_landmarks"]
     front_camera -->|broadcasts| tf
     
     %% Top Camera subscriptions
@@ -52,9 +52,9 @@ graph TB
     cam02_depth_info -->|subscribes| top_camera
     
     %% Top Camera publications
-    top_camera -->|publishes| top_annotated[/top_camera/annotated_image]
-    top_camera -->|publishes| top_left_hand[/top_camera/left_hand_landmarks]
-    top_camera -->|publishes| top_right_hand[/top_camera/right_hand_landmarks]
+    top_camera -->|publishes| top_annotated["/top_camera/annotated_image"]
+    top_camera -->|publishes| top_left_hand["/top_camera/left_hand_landmarks"]
+    top_camera -->|publishes| top_right_hand["/top_camera/right_hand_landmarks"]
     top_camera -->|broadcasts| tf
     
     %% Styling
