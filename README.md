@@ -242,9 +242,9 @@ ros2 run orbbec_camera list_devices_node
 [10/14 22:56:00.340190][info][7139][DeviceManager.cpp:24] 	- Name: SV1301S_U3, PID: 0x0614, SN/ID: , Connection: USB3.0
 [10/14 22:56:00.340192][info][7139][DeviceManager.cpp:24] 	- Name: SV1301S_U3, PID: 0x0614, SN/ID: , Connection: USB3.0
 [INFO] [1760450160.382261914] [list_device_node]: serial: AY0F7010783
-[INFO] [1760450160.382286638] [list_device_node]: usb port: 2-3.2 
+[INFO] [1760450160.382286638] [list_device_node]: usb port: 2-3.2 #check!
 [INFO] [1760450160.424122696] [list_device_node]: serial: AY0F7010108
-[INFO] [1760450160.424135464] [list_device_node]: usb port: 2-4.2
+[INFO] [1760450160.424135464] [list_device_node]: usb port: 2-4.2 #check!
 ```
 - Rewrite the camera launch file. / カメラのLaunchファイルを書き換える．  
 `ros2_ws/src/OrbbecSDK_ROS2/orbbec_camera/launch/multi_camera.launch.py`
@@ -303,7 +303,7 @@ colcon build --symlink-install --packages-select orbbec_camera
 - Camera connection check!  
 [Run camera](#Camera-launch)
 
-### Cibo起動
+### Launch Cibo
 ```bash
 ros2 launch cibo cibo_depth.launch.py
 ```
@@ -319,14 +319,23 @@ How to Select an ROI (Specify the area for skeleton estimation) / ROI選択方�
 ```bash
 ros2 run cibo image_show_node
 ```
-### Run chewing count node / 咀嚼回数をカウントするNode
+### Run chewing count node
 ```bash
 ros2 run cibo chew_counter_node
 ```
 > [!WARNING]
 > `ros2 run cibo chew_counter_node`  
 > It may not function properly as it is currently being adjusted.  
-> 調整中のため，正常に動作しない可能性があります．
+> 調整中のため，正常に動作しない．
+
+### Run eating state node 
+```bash
+ros2 run cibo eating_state_detector_node
+```
+> [!WARNING]
+> `ros2 run cibo chew_counter_node`  
+> It may not function properly as it is currently being adjusted.  
+> 調整中のため，正常に動作しない．
 
 ### [rosbag](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Recording-And-Playing-Back-Data/Recording-And-Playing-Back-Data.html)
 If you want to record images, use rosbg. / 画像を録画したい場合は，rosbagを利用
@@ -411,7 +420,7 @@ Recode
 | `/chewing/count` | `std_msgs/Int32` | 咀嚼の累積回数 |
 | `/chewing/mar` | `std_msgs/Float32` | 平滑化後MAR |
 
-## 📦 Parameter List
+## 📦 Parameter List ((ROS 2 params)[https://docs.ros.org/en/humble/Concepts/Basic/About-Parameters.html])
 
 ### front_camera_node
 
