@@ -208,3 +208,51 @@ def generate_launch_description():
 
     return ld
 ```
+- ビルド（つくる）
+```bash
+colcon build --symlink-install --packages-select orbbec_camera
+```
+- カメラがうごくか もういちど かくにん 
+[Run camera](#Camera-launch)
+
+### ちーぼをうごかす
+```bash
+ros2 launch cibo cibo_depth.launch.py
+```
+ROI（見てほしいはんい）のえらびかた（ほねのいちをかんがえます）
+1. ちーぼをきどうするとどうがのまどがでます
+2. まうすで どらっぐして はんいをえらびます
+3. けっていすると「みどり」のしかくが出ます
+
+### 出力のがぞうをみる
+```bash
+ros2 run cibo image_show_node
+```
+### そしゃくかいすう（かみかみのかいすうをかぞえます）
+```bash
+ros2 run cibo chew_counter_node
+```
+> [!WARNING]
+> ただいま ちょうせいちゅうです  
+> うまく うごかないことがあります
+
+### たべている人のじょうたいをかんがえる
+```bash
+ros2 run cibo eating_state_detector_node
+```
+> [!WARNING]
+> ただいま ちょうせいちゅうです  
+> うまく うごかないことがあります
+
+## 🚀 めいれい
+### front_camera_node
+- **説明**: まえカメラで，かおやからだの らんどまーく（めじるし）を出します
+
+### top_camera_node  
+- **説明**: うえカメラで，からだ（ぽーず）と ての らんどまーくを出します
+
+### chew_counter_node
+- **説明**: そしゃく（かむ）かいすうを かぞえます
+
+## eating_state_detection
+**説明**: たべている・しゃべっている・じっとしている などの「じょうたい」をよみとります
