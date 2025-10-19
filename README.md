@@ -5,7 +5,7 @@
 - Estimating human skeletal structure while eating.
 - Estimating a person's state during meals.
 
-## Feature
+## 📦 Feature
 ### Nodes & Topics
 ```mermaid
 flowchart LR
