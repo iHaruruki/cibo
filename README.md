@@ -2,7 +2,7 @@
 [![ROS 2 Distro - Humble](https://img.shields.io/badge/ros2-Humble-blue)](https://docs.ros.org/en/humble/)
 
 > [!NOTE]
-> にほんごのせつめい
+> にほんごのせつめい  
 > [やさしいにほんご](documents/japanese.md)
 
 ## 🚀 Overview

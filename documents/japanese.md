@@ -76,7 +76,7 @@ flowchart LR
 > 2025-10-14 のじょうほうです
 
 ### ひつようなめいれいをいれる
-ヘビさん:snake:のプログラムをいれる
+ヘビさん :snake: のプログラムをいれる
 ```bash
 pip3 install -U "numpy==1.26.4" "opencv-python==4.10.0.84"
 pip3 install opencv-python mediapipe
@@ -134,9 +134,8 @@ rviz2 でえいぞうをみる
 - `Top_camera` まどに うえカメラ のえいぞうが出ていますか？
 
 > [!TIP]  
-> もし ふたつのカメラのいち（まえ／うえ）がぎゃくになったり，つながらないときは  
+> もし ふたつのカメラのいち（まえ／うえ）がぎゃくになったり，つながらないときはせつめいをよんでなおしてください
 > [Multi-Camera](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main?tab=readme-ov-file#multi-camera)  
-> せつめいをよんでなおしてください
 
 
 カメラの `usb_port` をしるには，カメラとパソコンをつないで，つぎの文字をにゅうりょくします
