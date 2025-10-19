@@ -424,7 +424,7 @@ Recode
 | `/chewing/count` | `std_msgs/Int32` | 咀嚼の累積回数 |
 | `/chewing/mar` | `std_msgs/Float32` | 平滑化後MAR |
 
-## 📦 Parameter List ((ROS 2 params)[https://docs.ros.org/en/humble/Concepts/Basic/About-Parameters.html])
+## 📦 Parameter List ([ROS 2 params](https://docs.ros.org/en/humble/Concepts/Basic/About-Parameters.html))
 
 ### front_camera_node
 
