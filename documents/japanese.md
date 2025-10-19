@@ -71,8 +71,8 @@ flowchart LR
 リンクのあんないにしたがってください↓
 [OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2.git)
 > [!IMPORTANT]
-> つかう枝：main
-> `v2-main` 枝さんではなく，`main` 枝さんをつかいましょう
+> つかう枝：main  
+> `v2-main` 枝さんではなく，`main` 枝さんをつかいましょう  
 > 2025-10-14 のじょうほうです
 
 ### ひつようなめいれいをいれる
@@ -103,7 +103,7 @@ $ source install/setup.bash
 ## 🎮 つかいかた
 ### Fetch（あたらしいハコ🎁をうけとる）
 GitHub があたらしくなっているかもしれません．  
-じぶんのパソコンに新しいハコ🎁をうけとりましょう．
+じぶんのパソコンであたらしいハコ🎁をうけとりましょう．
 ```bash
 cd ~/ros2_ws/src/cibo
 ```
@@ -128,17 +128,17 @@ ros2 launch orbbec_camera multi_camera.launch.py
 ```bash
 ros2 launch cibo rviz.launch.py
 ```
-rviz2 でえいぞうをみる  
+えいぞうをみる  
 
 - `Front_camera` まどに まえカメラ のえいぞうが出ていますか？
 - `Top_camera` まどに うえカメラ のえいぞうが出ていますか？
 
 > [!TIP]  
-> もし ふたつのカメラのいち（まえ／うえ）がぎゃくになったり，つながらないときはせつめいをよんでなおしてください
+> もし ふたつのカメラのいち（まえ／うえ）がぎゃくになったり，つながらないときはせつめいをよんでなおしてください  
 > [Multi-Camera](https://github.com/orbbec/OrbbecSDK_ROS2/tree/main?tab=readme-ov-file#multi-camera)  
 
 
-カメラの `usb_port` をしるには，カメラとパソコンをつないで，つぎの文字をにゅうりょくします
+カメラのいりぐち `usb_port` をしるには，カメラとパソコンをつないで，つぎの文字をにゅうりょくします
 ```bash
 ros2 run orbbec_camera list_devices_node
 ```
@@ -212,7 +212,7 @@ def generate_launch_description():
 ```bash
 colcon build --symlink-install --packages-select orbbec_camera
 ```
-- カメラがうごくか もういちど かくにん 
+- カメラがうごくか もういちど かくにん  
 [Run camera](#Camera-launch)
 
 ### ちーぼをうごかす
@@ -246,13 +246,13 @@ ros2 run cibo eating_state_detector_node
 
 ## 🚀 めいれい
 ### front_camera_node
-- **説明**: まえカメラで，かおやからだの らんどまーく（めじるし）を出します
+- **きのう**: まえカメラで，かおやからだの らんどまーく（めじるし）を出します
 
 ### top_camera_node  
-- **説明**: うえカメラで，からだ（ぽーず）と ての らんどまーくを出します
+- **きのう**: うえカメラで，からだ（ぽーず）と ての らんどまーくを出します
 
 ### chew_counter_node
-- **説明**: そしゃく（かむ）かいすうを かぞえます
+- **きのう**: そしゃく（かむ）かいすうを かぞえます
 
 ## eating_state_detection
-**説明**: たべている・しゃべっている・じっとしている などの「じょうたい」をよみとります
+**きのう**: たべている・しゃべっている・じっとしている などの「じょうたい」をよみとります
