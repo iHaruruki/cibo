@@ -1,6 +1,10 @@
 # cibo
 [![ROS 2 Distro - Humble](https://img.shields.io/badge/ros2-Humble-blue)](https://docs.ros.org/en/humble/)
 
+> [!NOTE]
+> にほんごのせつめい
+> [やさしいにほんご](documents/japanese.md)
+
 ## 🚀 Overview
 - Estimating human skeletal structure while eating.
 - Estimating a person's state during meals.
