@@ -456,6 +456,12 @@ Recode
 - **[iHaruruki](https://github.com/iHaruruki)** — Main author & maintainer
 
 ## 📚 Reference
+Mediapipe Face Mesh
+- [MediaPipe](https://chuoling.github.io/mediapipe/)
+- [顔ランドマーク検出ガイド](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker?utm_source=chatgpt.com)
+- [468点の3Dランドマーク。基礎解説](https://mediapipe.readthedocs.io/en/latest/solutions/face_mesh.html?utm_source=chatgpt.com)
+- [Face Meshの実務的使い方](https://samproell.io/posts/yarppg/yarppg-face-detection-with-mediapipe/?utm_source=chatgpt.com)
+
 MediaPipe Holistic
 - [MediaPipe](https://chuoling.github.io/mediapipe/)
 - [Holistic Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/holistic_landmarker?utm_source=chatgpt.com)
