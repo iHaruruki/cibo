@@ -68,7 +68,7 @@ flowchart LR
 
 ## 🛠️ じゅんび（セットアップ）
 ### カメラのせってい
-リンクのあんないにしたがってください↓
+リンクのあんないにしたがってください↓  
 [OrbbecSDK_ROS2](https://github.com/orbbec/OrbbecSDK_ROS2.git)
 > [!IMPORTANT]
 > つかう枝：main  
