@@ -456,9 +456,33 @@ Recode
 - **[iHaruruki](https://github.com/iHaruruki)** — Main author & maintainer
 
 ## 📚 Reference
+MediaPipe Holistic
 - [MediaPipe](https://chuoling.github.io/mediapipe/)
-- [Mermaid](https://mermaid.js.org/)
+- [Holistic Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/holistic_landmarker?utm_source=chatgpt.com)
+- [Holistic のトポロジ・リアルタイム性の解説](https://research.google/blog/mediapipe-holistic-simultaneous-face-hand-and-pose-prediction-on-device/?utm_source=chatgpt.com)
+
+MediaPipe Pose
+- [Pose Landmarker ガイド](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker?utm_source=chatgpt.com)
+
+ROS 2 message_filters
+- [message_filters](https://docs.ros.org/en/rolling/p/message_filters/doc/index.html)
+- [ROS 2（rolling）のPythonチュートリアル](https://docs.ros.org/en/rolling/p/message_filters/doc/Tutorials/Approximate-Synchronizer-Python.html?utm_source=chatgpt.com)
+
+CV Bridge
+- [CvBridge公式チュートリアル](https://wiki.ros.org/cv_bridge/Tutorials/ConvertingBetweenROSImagesAndOpenCVImagesPython?utm_source=chatgpt.com)
+- [image_pipeline](https://docs.ros.org/en/rolling/p/image_pipeline/camera_info.html)
+- [ROS cv_bridge](- [CvBridge公式チュートリアル](https://wiki.ros.org/cv_bridge/Tutorials/ConvertingBetweenROSImagesAndOpenCVImagesPython?utm_source=chatgpt.com)
+- [image_pipeline](https://docs.ros.org/en/rolling/p/image_pipeline/camera_info.html))
+
+tf2_ros / TransformBroadcaster（Python）
+- [Pythonブロードキャスタの実装](https://docs.ros.org/en/foxy/Tutorials/Intermediate/Tf2/Writing-A-Tf2-Broadcaster-Py.html?utm_source=chatgpt.com)
+- [tf2（ROS1）チュートリアル](https://wiki.ros.org/tf2/Tutorials/Writing%20a%20tf2%20broadcaster%20%28Python%29?utm_source=chatgpt.com)
+
+Mermaid
+- [Mermaid公式](https://mermaid.js.org/)
 - [mermaidでフローチャートを描く](https://zenn.dev/yuriemori/articles/e097dbd950df86#%E5%9B%B3%E3%81%AE%E7%A8%AE%E9%A1%9E)
+
+LaTex
 - [はじめてのLaTex: 数式の入力と環境構築](https://guides.lib.kyushu-u.ac.jp/LaTeX-LectureNote/equations)
 - [LaTex - コマンド一覧](https://yokatoki.sakura.ne.jp/LaTeX/latex.html)
 - [数式の記述(markdown)](https://docs.github.com/ja/enterprise-cloud@latest/get-started/writing-on-github/working-with-advanced-formatting/writing-mathematical-expressions)
