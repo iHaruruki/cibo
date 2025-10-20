@@ -466,6 +466,12 @@ MediaPipe Holistic
 MediaPipe Pose
 - [Pose Landmarker ガイド](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker?utm_source=chatgpt.com)
 
+Orbbec Astra Stereo S U3
+- [OrbbecSDK_ROS2_Docs](https://github.com/orbbec/OrbbecSDK_ROS2_Docs.git)
+
+Cameras and Calibration
+- [Cameras and CalibrationGetting Setup](https://industrial-training-master.readthedocs.io/en/latest/_source/session9/Cameras-and-Calibration.html)
+
 ROS 2 message_filters
 - [message_filters](https://docs.ros.org/en/rolling/p/message_filters/doc/index.html)
 - [ROS 2（rolling）のPythonチュートリアル](https://docs.ros.org/en/rolling/p/message_filters/doc/Tutorials/Approximate-Synchronizer-Python.html?utm_source=chatgpt.com)
