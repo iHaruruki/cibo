@@ -473,7 +473,7 @@ ROS 2 message_filters
 CV Bridge
 - [CvBridge公式チュートリアル](https://wiki.ros.org/cv_bridge/Tutorials/ConvertingBetweenROSImagesAndOpenCVImagesPython?utm_source=chatgpt.com)
 - [image_pipeline](https://docs.ros.org/en/rolling/p/image_pipeline/camera_info.html)
-- [ROS cv_bridge](- [CvBridge公式チュートリアル](https://wiki.ros.org/cv_bridge/Tutorials/ConvertingBetweenROSImagesAndOpenCVImagesPython?utm_source=chatgpt.com)
+- [Converting between ROS images and OpenCV images (Python)](https://wiki.ros.org/cv_bridge/Tutorials/ConvertingBetweenROSImagesAndOpenCVImagesPython?utm_source=chatgpt.com)
 - [image_pipeline](https://docs.ros.org/en/rolling/p/image_pipeline/camera_info.html))
 
 tf2_ros / TransformBroadcaster（Python）
