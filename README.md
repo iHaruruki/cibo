@@ -471,6 +471,7 @@ Orbbec Astra Stereo S U3
 
 Cameras and Calibration
 - [Cameras and CalibrationGetting Setup](https://industrial-training-master.readthedocs.io/en/latest/_source/session9/Cameras-and-Calibration.html)
+- [robot_cal_tools](https://github.com/Jmeyer1292/robot_cal_tools.git)
 
 ROS 2 message_filters
 - [message_filters](https://docs.ros.org/en/rolling/p/message_filters/doc/index.html)
