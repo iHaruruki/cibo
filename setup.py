@@ -32,6 +32,7 @@ setup(
             'chew_counter_node = cibo.chew_counter:main',
             'eating_state_detector_node = cibo.eating_state_detector:main',
             'image_show_node = cibo.image_show:main',
+            'dual_camera_sync_node = cibo.sync_republisher:main',
         ],
     },
 )
