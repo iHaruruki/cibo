@@ -354,7 +354,6 @@ Recode only specific topics
 # ros2 bag record --topics <topic_name_1> <topic_name_2> <topic_name_3>
 ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /camera_02/color/image_raw /camera_02/depth/image_raw
 ```
-Recode 
 > [!WARNING]
 > データサイズが大きいため，ストレージの空き容量に注意！
 
