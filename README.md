@@ -374,55 +374,9 @@ ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /
 **説明**: 状態推定
 - [methods](documents/chewing_count.md)
 
-## 🧩 Topic List
-
-### front_camera_node
-
-#### Subscribed Topics
-| Topic名 | メッセージ型 | 説明 |
-|---------|-------------|------|
-| `/camera_02/color/image_raw` | `sensor_msgs/Image` | フロントカメラからの入力画像 |
-
-#### Published Topics
-| Topic名 | メッセージ型 | 説明 |
-|---------|-------------|------|
-| `/front_camera/annotated_image` | `sensor_msgs/Image` | ランドマーク付きの画像 |
-| `/front_camera/pose_landmarks` | `std_msgs/Float32MultiArray` | ポーズランドマーク座標（x,y,z） |
-| `/front_camera/face_landmarks` | `std_msgs/Float32MultiArray` | 顔ランドマーク座標（Face Meshモデル、最大478ポイント、虹彩含む） |
-| `/front_camera/left_hand_landmarks` | `std_msgs/Float32MultiArray` | 左手ランドマーク座標（x,y,z） |
-| `/front_camera/right_hand_landmarks` | `std_msgs/Float32MultiArray` | 右手ランドマーク座標（x,y,z） |
-
-### top_camera_node
-
-#### Subscribed Topics
-| Topic名 | メッセージ型 | 説明 |
-|---------|-------------|------|
-| `/camera_01/color/image_raw` | `sensor_msgs/Image` | トップカメラからの入力画像 |
-
-#### Published Topics
-| Topic名 | メッセージ型 | 説明 |
-|---------|-------------|------|
-| `/top_camera/annotated_image` | `sensor_msgs/Image` | ランドマーク付きの画像 |
-| `/top_camera/pose_landmarks` | `std_msgs/Float32MultiArray` | ポーズランドマーク座標（x,y,z） |
-| `/top_camera/left_hand_landmarks` | `std_msgs/Float32MultiArray` | 左手ランドマーク座標（x,y,z） |
-| `/top_camera/right_hand_landmarks` | `std_msgs/Float32MultiArray` | 右手ランドマーク座標（x,y,z） |
-
-### chew_counter_node
-#### Subscribed Topics
-| Topic名 | メッセージ型 | 説明 |
-|---------|-------------|------|
-| `/front_camera/face_landmarks` | `std_msgs/Float32MultiArray` | 顔ランドマーク座標（Face Meshモデル、最大478ポイント、虹彩含む） |
-
-#### Published Topics
-| Topic名 | メッセージ型 | 説明 |
-|---------|-------------|------|
-| `/chewing/count` | `std_msgs/Int32` | 咀嚼の累積回数 |
-| `/chewing/mar` | `std_msgs/Float32` | 平滑化後MAR |
-
 ## 📦 Parameter List ([ROS 2 params](https://docs.ros.org/en/humble/Concepts/Basic/About-Parameters.html))
 
 ### front_camera_node
-
 | Parameter名 | 型 | デフォルト値 | 説明 |
 |-------------|----|-----------|----|
 | `enable_roi` | bool | true | ROI（関心領域）を有効にするかどうか |
@@ -436,7 +390,6 @@ ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /
 | `refine_landmarks` | bool | true | 顔ランドマークの詳細化を有効にするかどうか |
 
 ### top_camera_node
-
 | Parameter名 | 型 | デフォルト値 | 説明 |
 |-------------|----|-----------|----|
 | `enable_roi` | bool | true | ROI（関心領域）を有効にするかどうか |
