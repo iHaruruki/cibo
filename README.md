@@ -378,7 +378,7 @@ ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /
 
 ### front_camera_node
 | Parameter | Type | Default value | Description |
-|-------------|----|-----------|----|
+|-----------|------|---------------|-------------|
 | `enable_roi` | bool | true | Enable ROI (Region of Interest) |
 | `roi_x` | int | 0 | ROI start X coordinate |
 | `roi_y` | int | 0 | ROI start Y coordinate |
@@ -390,8 +390,8 @@ ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /
 | `refine_landmarks` | bool | true | Enable detailed facial landmarks |
 
 ### top_camera_node
-| Parameter名 | 型 | デフォルト値 | 説明 |
-|-------------|----|-----------|----|
+| Parameter | Type | Default value | Description |
+|-----------|------|---------------|-------------|
 | `enable_roi` | bool | true | Enable ROI (Region of Interest) |
 | `roi_x` | int | 0 | ROI start X coordinate |
 | `roi_y` | int | 0 | ROI start Y coordinate |
