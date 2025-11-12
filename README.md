@@ -379,26 +379,26 @@ ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /
 ### front_camera_node
 | Parameter | Type | Default value | Description |
 |-------------|----|-----------|----|
-| `enable_roi` | bool | true | ROI（関心領域）を有効にするかどうか |
-| `roi_x` | int | 0 | ROIの開始X座標 |
-| `roi_y` | int | 0 | ROIの開始Y座標 |
-| `roi_width` | int | 400 | ROIの幅 |
-| `roi_height` | int | 300 | ROIの高さ |
-| `min_detection_confidence` | double | 0.5 | 検出の最小信頼度 |
-| `min_tracking_confidence` | double | 0.5 | 追跡の最小信頼度 |
-| `enable_iris` | bool | true | 虹彩検出を有効にするかどうか |
-| `refine_landmarks` | bool | true | 顔ランドマークの詳細化を有効にするかどうか |
+| `enable_roi` | bool | true | Enable ROI (Region of Interest) |
+| `roi_x` | int | 0 | ROI start X coordinate |
+| `roi_y` | int | 0 | ROI start Y coordinate |
+| `roi_width` | int | 400 | ROI width |
+| `roi_height` | int | 300 | High ROI |
+| `min_detection_confidence` | double | 0.5 | Minimum confidence level for detection |
+| `min_tracking_confidence` | double | 0.5 | Minimum confidence level for tracking |
+| `enable_iris` | bool | true | Enable iris detection |
+| `refine_landmarks` | bool | true | Enable detailed facial landmarks |
 
 ### top_camera_node
 | Parameter名 | 型 | デフォルト値 | 説明 |
 |-------------|----|-----------|----|
-| `enable_roi` | bool | true | ROI（関心領域）を有効にするかどうか |
-| `roi_x` | int | 0 | ROIの開始X座標 |
-| `roi_y` | int | 0 | ROIの開始Y座標 |
-| `roi_width` | int | 400 | ROIの幅 |
-| `roi_height` | int | 300 | ROIの高さ |
-| `min_detection_confidence` | double | 0.5 | 検出の最小信頼度 |
-| `min_tracking_confidence` | double | 0.5 | 追跡の最小信頼度 |
+| `enable_roi` | bool | true | Enable ROI (Region of Interest) |
+| `roi_x` | int | 0 | ROI start X coordinate |
+| `roi_y` | int | 0 | ROI start Y coordinate |
+| `roi_width` | int | 400 | ROI width |
+| `roi_height` | int | 300 | High ROI |
+| `min_detection_confidence` | double | 0.5 | Minimum confidence level for detection |
+| `min_tracking_confidence` | double | 0.5 | Minimum confidence level for tracking |
 
 ## 👤 Authors
 - **[iHaruruki](https://github.com/iHaruruki)** — Main author & maintainer
