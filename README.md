@@ -355,7 +355,7 @@ Recode only specific topics
 ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /camera_02/color/image_raw /camera_02/depth/image_raw
 ```
 > [!WARNING]
-> Due to the large data size, be mindful of your available storage space!
+> Due to the large data size, be mindful of your available storage space!  
 > データサイズが大きいため，ストレージの空き容量に注意！
 
 
