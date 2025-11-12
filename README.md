@@ -361,23 +361,23 @@ ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /
 ## 🚀 Node List
 
 ### front_camera_node
-- **説明**: フロントカメラ用の骨格推定ノード.Face Meshモデルによる詳細な顔解析を実行
+- **Function**: Skeletal estimation node for the front camera. Performs detailed facial analysis using the Face Mesh model. / フロントカメラ用の骨格推定ノード．Face Meshモデルによる詳細な顔解析を実行．
 
 ### top_camera_node  
-- **説明**: トップカメラ用の骨格推定ノード.ポーズと手の検出に特化
+- **Function**: Skeleton estimation node for top cameras. Specialized for pose and hand detection. / トップカメラ用の骨格推定ノード．ポーズと手の検出に特化．
 
 ### chew_counter_node
-- **説明**: 咀嚼回数をカウントする
+- **Function**: Counting chews / 咀嚼回数をカウントする．
 - [methods](documents/chewing_count.md)
 
 ## eating_state_detection
-**説明**: 状態推定
+**Function**: State estimation / 状態推定
 - [methods](documents/chewing_count.md)
 
 ## 📦 Parameter List ([ROS 2 params](https://docs.ros.org/en/humble/Concepts/Basic/About-Parameters.html))
 
 ### front_camera_node
-| Parameter名 | 型 | デフォルト値 | 説明 |
+| Parameter | Type | Default value | Description |
 |-------------|----|-----------|----|
 | `enable_roi` | bool | true | ROI（関心領域）を有効にするかどうか |
 | `roi_x` | int | 0 | ROIの開始X座標 |
