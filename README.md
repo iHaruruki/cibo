@@ -185,15 +185,6 @@ $ source install/setup.bash
 ```
 
 ## 🎮 How to use
-### Fetch
-Synchronize your local repository with the remote repository.  
-GitHubを更新している可能性があるので，ローカルリポジトリとリモートリポジトリを同期させる．
-```bash
-cd ~/ros2_ws/src/cibo
-```
-```bash
-git fetch
-```
 ### Build
 ```bash
 cd ~/ros2_ws
