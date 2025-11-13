@@ -17,6 +17,11 @@ def generate_launch_description():
     with open(urdf, 'r') as f:
         robot_desc = f.read()
 
+    rviz_config_dir = os.path.join(
+        get_package_share_directory('cibo'),
+        'rviz', 'cibo_tf.rviz'
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
@@ -67,5 +72,13 @@ def generate_launch_description():
             #     ('/camera_02/depth/image_raw', '/sync/camera_02/depth/image_raw'),
             #     ('/camera_02/depth/camera_info', '/sync/camera_02/depth/camera_info'),
             # ]
+        ),
+
+        Node(
+            package='rviz2', 
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d', rviz_config_dir],
+            output='screen',
         ),
     ])
