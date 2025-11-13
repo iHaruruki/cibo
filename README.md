@@ -193,8 +193,6 @@ cd ~/ros2_ws/src/cibo
 ```
 ```bash
 git fetch
-git switch feature-nuc36
-git pull origin feature-nuc36
 ```
 ### Build
 ```bash
