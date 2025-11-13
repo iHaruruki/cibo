@@ -298,6 +298,7 @@ def generate_launch_description():
 
 - Build
 ```bash
+cd ~/ros2_ws
 colcon build --symlink-install --packages-select orbbec_camera
 ```
 - Camera connection check!  
@@ -344,12 +345,12 @@ If you want to record images, use rosbg. / 画像を録画したい場合は，r
 cd ~/ros2_ws/bag_files
 # If you have created it, use `mkdir bag_files`
 ```
-Recode all topic
+Recode all topic / すべてのトピックを記録する
 ```bash
 ros2 bag record -a
 # This command is mode that record all topic.
 ```
-Recode only specific topics
+Recode only specific topics / 特定のトピックのみ記録する
 ```bash
 # ros2 bag record --topics <topic_name_1> <topic_name_2> <topic_name_3>
 ros2 bag record --topics /camera_01/color/image_raw /camera_01/depth/image_raw /camera_02/color/image_raw /camera_02/depth/image_raw
